@@ -24,9 +24,25 @@ class PowerMethodPINN:
         else:
             return x
 
+    def apply_boundary_condition(self, x, u):
+        # Impone u=0 en el borde multiplicando por una función que se anula en ∂Ω
+        g = torch.ones_like(u)
+        for i in range(x.shape[1]):
+            xi = x[:, i:i+1]
+            lb = self.config["domain_lb"][i]
+            ub = self.config["domain_ub"][i]
+            g *= (xi - lb) * (ub - xi)
+        return g * u
+
     def loss_fn(self, x):
         x_input = self.apply_input_transform(x)
-        u_pred = self.model(x_input)
+        u_raw = self.model(x_input)
+
+        if not self.config.get("periodic", False):
+            u_pred = self.apply_boundary_condition(x, u_raw)
+        else:
+            u_pred = u_raw
+
         u_pred = u_pred / torch.norm(u_pred)
         Lu = compute_laplacian(u_pred, x) + self.config["M"] * u_pred
         loss = torch.mean((Lu - self.lambda_ * self.u) ** 2)
@@ -69,7 +85,13 @@ class PowerMethodPINN:
         x_tensor = torch.tensor(x_eval, dtype=torch.float32).to(self.device)
         x_input = self.apply_input_transform(x_tensor)
         with torch.no_grad():
-            u_pred = self.model(x_input).cpu().numpy()
+            u_raw = self.model(x_input)
+            if not self.config.get("periodic", False):
+                u_pred = self.apply_boundary_condition(x_tensor, u_raw)
+            else:
+                u_pred = u_raw
+            u_pred = u_pred.cpu().numpy()
+
         u_true = self.config["exact_u"](x_eval)
         u_pred /= np.linalg.norm(u_pred)
         u_true /= np.linalg.norm(u_true)
