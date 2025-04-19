@@ -2,6 +2,7 @@ from config import CONFIG
 from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
 from utils import save_model
+from datetime import timedelta
 
 if __name__ == "__main__":
     if CONFIG["periodic"]:
@@ -28,3 +29,14 @@ if __name__ == "__main__":
 
     pinn.evaluate()
     save_model(model, CONFIG, folder="saved_model")
+    print("\n------ Entrenamiento Finalizado ------")
+    print(f"Dimensión:               {CONFIG['dimension']}")
+    print(f"Tipo de condiciones:     {'Periódicas' if CONFIG['periodic'] else 'Dirichlet'}")
+    print(f"Arquitectura:            {CONFIG['depth']} capas × {CONFIG['width']} neuronas")
+    print(f"Número de puntos:        {CONFIG['n_train']}")
+    print(f"Optimizador:             {CONFIG['optimizer']}")
+    print(f"Valor real λ:            {CONFIG['lambda_true']:.8f}")
+    print(f"Valor estimado λ:        {pinn.lambda_:.8f}")
+    print(f"Error absoluto:          {abs(CONFIG['lambda_true'] - pinn.lambda_):.4e}")
+    print(f"Error relativo:          {abs(CONFIG['lambda_true'] - pinn.lambda_) / abs(CONFIG['lambda_true']):.2%}")
+    print(f"Modelo guardado en:      {os.path.join(CONFIG['save_folder'], CONFIG['model_name'])}")
