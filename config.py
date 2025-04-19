@@ -17,7 +17,7 @@ CONFIG = {
     "adam_lr": 1e-3,
     "lbfgs_steps": 500,
     "n_train": 10000,
-    "checkpoint_path": "best_model.pt",
+    "checkpoint_path": "model1_1d.pt",
 
     "lambda_true":100 - d * np.pi**2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
