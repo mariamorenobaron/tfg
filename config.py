@@ -22,7 +22,7 @@ CONFIG = {
     "lambda_true":100 - d * np.pi**2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
 
-    "periodic": True,
+    "periodic": False,
     "pbc_k": 1,
     "periods": None
 }
