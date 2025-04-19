@@ -39,4 +39,3 @@ if __name__ == "__main__":
     print(f"Valor estimado λ:        {pinn.lambda_:.8f}")
     print(f"Error absoluto:          {abs(CONFIG['lambda_true'] - pinn.lambda_):.4e}")
     print(f"Error relativo:          {abs(CONFIG['lambda_true'] - pinn.lambda_) / abs(CONFIG['lambda_true']):.2%}")
-    print(f"Modelo guardado en:      {os.path.join(CONFIG['save_folder'], CONFIG['model_name'])}")
