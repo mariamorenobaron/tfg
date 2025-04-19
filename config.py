@@ -5,7 +5,7 @@ d = 1
 CONFIG = {
     "dimension": d,
    "domain_lb": np.zeros(d),
-    "domain_ub": np.full(d, 2*np.pi) if periodic else np.ones(d),
+    "domain_ub": np.ones(d),
     "M": 100.0,
 
     "architecture": "MLP",
