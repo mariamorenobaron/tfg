@@ -15,7 +15,7 @@ CONFIG = {
 
     "adam_steps": 50000,
     "adam_lr": 1e-3,
-    "lbfgs_steps": 500,
+    "lbfgs_steps": 5000,
     "n_train": 10000,
     "checkpoint_path": "model1_1d.pt",
 
