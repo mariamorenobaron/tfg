@@ -37,16 +37,24 @@ class PowerMethodPINN:
     def loss_fn(self, x):
         x_input = self.apply_input_transform(x)
         u_raw = self.model(x_input)
-
+    
         if not self.config.get("periodic", False):
             u_pred = self.apply_boundary_condition(x, u_raw)
         else:
             u_pred = u_raw
-
+    
         u_pred = u_pred / torch.norm(u_pred)
         Lu = compute_laplacian(u_pred, x) + self.config["M"] * u_pred
         loss = torch.mean((Lu - self.lambda_ * self.u) ** 2)
+    
+        # Actualización del vector u (próxima iteración)
         self.u = Lu.detach() / torch.norm(Lu.detach())
+    
+        # Actualización del eigenvalor con cociente de Rayleigh
+        numerator = torch.sum(Lu * self.u)
+        denominator = torch.sum(self.u ** 2)
+        self.lambda_ = (numerator / denominator).item()
+    
         return loss
 
     def train_adam(self):
