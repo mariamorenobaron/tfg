@@ -27,7 +27,6 @@ if __name__ == "__main__":
     elif CONFIG["optimizer"] == "Adam+LBFGS":
         pinn.train_adam_then_lbfgs()
 
-    pinn.evaluate()
     save_model(model, CONFIG, folder="saved_model")
     print("\n------ Entrenamiento Finalizado ------")
     print(f"Dimensión:               {CONFIG['dimension']}")

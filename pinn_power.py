@@ -111,24 +111,15 @@ class PowerMethodPINN:
 
         opt.step(closure)
 
-    def evaluate(self):
-        x_eval = self.sample_points(5000).detach().cpu().numpy()
-        x_tensor = torch.tensor(x_eval, dtype=torch.float32).to(self.device)
-        x_input = self.apply_input_transform(x_tensor)
-        with torch.no_grad():
-            u_raw = self.model(x_input)
-            if not self.config.get("periodic", False):
-                u_pred = self.apply_boundary_condition(x_tensor, u_raw)
-            else:
-                u_pred = u_raw
-            u_pred = u_pred.cpu().numpy()
+    def train_adam(self):
+        print("Starting Adam training...")
+        opt = torch.optim.Adam(self.model.parameters(), lr=self.config["adam_lr"])
+        for it in range(self.config["adam_steps"]):
+            opt.zero_grad()
+            loss = self.loss_fn(self.x_train)
+            loss.backward()
+            opt.step()
 
-        u_true = self.config["exact_u"](x_eval)
-        u_pred /= np.linalg.norm(u_pred)
-        u_true /= np.linalg.norm(u_true)
-        error = np.linalg.norm(u_pred - u_true) / np.sqrt(u_pred.shape[0])
+            if it % 1000 == 0:
+                print(f"[{it:5d}] Loss = {loss.item():.4e} | λ_est = {self.lambda_:.6f}")
 
-        print(f"\n[Evaluation]")
-        print(f"True λ:       {self.config['lambda_true']:.8f}")
-        print(f"Best λ est.:  {self.best_lambda:.8f}")
-        print(f"L2 error:     {error:.4e}")
