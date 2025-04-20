@@ -38,46 +38,46 @@ class PowerMethodPINN:
         return g * u
 
     def loss_fn(self, x):
-    # 1. Transform input if periodic
-    x_input = self.apply_input_transform(x)
+        # 1. Transform input if periodic
+        x_input = self.apply_input_transform(x)
+        
+        # 2. Forward pass: u^{k-1}
+        u_prev = self.model(x_input)
     
-    # 2. Forward pass: u^{k-1}
-    u_prev = self.model(x_input)
-
-    # 3. Impose Dirichlet condition if not periodic
-    if not self.config.get("periodic", False):
-        u_prev = self.apply_boundary_condition(x, u_prev)
-
-    # 4. Normalize u^{k-1}
-    u_prev = u_prev / (torch.norm(u_prev) + 1e-10)
-
-    # 5. Compute L u^{k-1} = Δu + M·u
-    Lu = compute_laplacian(u_prev, x) + self.config["M"] * u_prev
-
-    # 6. Power iteration: u^{k} ← Lu / ||Lu||
-    u_new = Lu.detach() / (torch.norm(Lu.detach()) + 1e-10)
-
-    # 7. PMNN loss: ||u_prev - u_new||^2
-    loss = torch.mean((u_prev - u_new) ** 2)
-
-    # 8. Estimate eigenvalue (Rayleigh quotient)
-    numerator = torch.sum(Lu * u_prev)
-    denominator = torch.sum(u_prev ** 2)
-    self.lambda_ = (numerator / denominator).item()
-
-    # 9. Update u for next iteration
-    self.u = u_new
-
-    # 10. Save best model
-    if loss.item() < self.min_loss:
-        self.min_loss = loss.item()
-        self.best_lambda = self.lambda_
-        torch.save({
-            "model_state_dict": self.model.state_dict(),
-            "lambda_": self.best_lambda
-        }, self.checkpoint_path)
-
-    return loss
+        # 3. Impose Dirichlet condition if not periodic
+        if not self.config.get("periodic", False):
+            u_prev = self.apply_boundary_condition(x, u_prev)
+    
+        # 4. Normalize u^{k-1}
+        u_prev = u_prev / (torch.norm(u_prev) + 1e-10)
+    
+        # 5. Compute L u^{k-1} = Δu + M·u
+        Lu = compute_laplacian(u_prev, x) + self.config["M"] * u_prev
+    
+        # 6. Power iteration: u^{k} ← Lu / ||Lu||
+        u_new = Lu.detach() / (torch.norm(Lu.detach()) + 1e-10)
+    
+        # 7. PMNN loss: ||u_prev - u_new||^2
+        loss = torch.mean((u_prev - u_new) ** 2)
+    
+        # 8. Estimate eigenvalue (Rayleigh quotient)
+        numerator = torch.sum(Lu * u_prev)
+        denominator = torch.sum(u_prev ** 2)
+        self.lambda_ = (numerator / denominator).item()
+    
+        # 9. Update u for next iteration
+        self.u = u_new
+    
+        # 10. Save best model
+        if loss.item() < self.min_loss:
+            self.min_loss = loss.item()
+            self.best_lambda = self.lambda_
+            torch.save({
+                "model_state_dict": self.model.state_dict(),
+                "lambda_": self.best_lambda
+            }, self.checkpoint_path)
+    
+        return loss
 
     def train_adam_then_lbfgs(self):
         print("Starting Adam training...")
