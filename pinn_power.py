@@ -1,6 +1,6 @@
 import torch
-from utils import sample_lhs, compute_laplacian, periodic_transform
 import numpy as np
+from utils import sample_lhs, compute_laplacian, periodic_transform
 
 class PowerMethodPINN:
     def __init__(self, model, config):
@@ -12,10 +12,11 @@ class PowerMethodPINN:
         self.x_train = self.sample_points(config["n_train"])
         self.u = torch.rand_like(self.x_train[:, :1]).to(self.device)
         self.u = self.u / torch.norm(self.u)
-        self.lambda_ = 1.0
-        self.best_lambda = None
-        self.min_loss = float("inf")
 
+        self.lambda_ = 1.0                # Último valor calculado
+        self.best_lambda = None           # Mejor valor
+        self.min_loss = float("inf")      # Mejor loss
+        self.checkpoint_path = config["checkpoint_path"]
 
     def sample_points(self, N):
         x = sample_lhs(self.config["domain_lb"], self.config["domain_ub"], N)
@@ -28,7 +29,6 @@ class PowerMethodPINN:
             return x
 
     def apply_boundary_condition(self, x, u):
-        # Impone u=0 en el borde multiplicando por una función que se anula en ∂Ω
         g = torch.ones_like(u)
         for i in range(x.shape[1]):
             xi = x[:, i:i+1]
@@ -40,61 +40,69 @@ class PowerMethodPINN:
     def loss_fn(self, x):
         x_input = self.apply_input_transform(x)
         u_raw = self.model(x_input)
-    
-        # Aplicar condición de contorno si no es periódico
+
         if not self.config.get("periodic", False):
             u_pred = self.apply_boundary_condition(x, u_raw)
         else:
             u_pred = u_raw
-    
+
         u_pred = u_pred / torch.norm(u_pred)
-    
-        # Calculamos Lu
+
         Lu = compute_laplacian(u_pred, x) + self.config["M"] * u_pred
-    
-        # Aquí evaluamos lambda usando u_pred
+
+        # Estimación de lambda (Rayleigh quotient)
         numerator = torch.sum(Lu * u_pred)
         denominator = torch.sum(u_pred ** 2)
         self.lambda_ = (numerator / denominator).item()
-    
-        # Ahora sí, actualizamos self.u para la siguiente iteración
+
+        # Actualizar vector u
         self.u = Lu.detach() / torch.norm(Lu.detach())
-    
-        # Finalmente, computamos el loss
+
+        # Calcular loss
         loss = torch.mean((Lu - self.lambda_ * u_pred) ** 2)
-    
+
+        # Guardar mejor lambda
+        if loss.item() < self.min_loss:
+            self.min_loss = loss.item()
+            self.best_lambda = self.lambda_
+            torch.save({
+                "model_state_dict": self.model.state_dict(),
+                "lambda_": self.best_lambda
+            }, self.checkpoint_path)
+
         return loss
 
-    def train_adam(self):
+    def train_adam_then_lbfgs(self):
+        print("Starting Adam training...")
         opt = torch.optim.Adam(self.model.parameters(), lr=self.config["adam_lr"])
-        for _ in range(self.config["adam_steps"]):
+        for it in range(self.config["adam_steps"]):
             opt.zero_grad()
             loss = self.loss_fn(self.x_train)
             loss.backward()
             opt.step()
 
+            if it % 1000 == 0:
+                print(f"[{it:5d}] Loss = {loss.item():.4e} | λ_est = {self.lambda_:.6f}")
+
+        # Cargar mejor modelo antes de LBFGS
+        if self.checkpoint_path:
+            checkpoint = torch.load(self.checkpoint_path)
+            self.model.load_state_dict(checkpoint["model_state_dict"])
+            self.lambda_ = checkpoint["lambda_"]
+
+        print("Starting LBFGS fine-tuning...")
+        self.train_lbfgs()
+
     def train_lbfgs(self):
         opt = torch.optim.LBFGS(self.model.parameters(), max_iter=self.config["lbfgs_steps"])
+
         def closure():
             opt.zero_grad()
             loss = self.loss_fn(self.x_train)
             loss.backward()
             return loss
-        opt.step(closure)
 
-    def train_adam_then_lbfgs(self):
-        best_loss = float("inf")
-        opt = torch.optim.Adam(self.model.parameters(), lr=self.config["adam_lr"])
-        for _ in range(self.config["adam_steps"]):
-            opt.zero_grad()
-            loss = self.loss_fn(self.x_train)
-            loss.backward()
-            opt.step()
-            if loss.item() < best_loss:
-                best_loss = loss.item()
-                torch.save(self.model.state_dict(), self.config["checkpoint_path"])
-        self.model.load_state_dict(torch.load(self.config["checkpoint_path"]))
-        self.train_lbfgs()
+        opt.step(closure)
 
     def evaluate(self):
         x_eval = self.sample_points(5000).detach().cpu().numpy()
@@ -112,4 +120,8 @@ class PowerMethodPINN:
         u_pred /= np.linalg.norm(u_pred)
         u_true /= np.linalg.norm(u_true)
         error = np.linalg.norm(u_pred - u_true) / np.sqrt(u_pred.shape[0])
-        print(f"[Eval] Relative L2 error: {error:.4e}")
+
+        print(f"\n[Evaluation]")
+        print(f"True λ:       {self.config['lambda_true']:.8f}")
+        print(f"Best λ est.:  {self.best_lambda:.8f}")
+        print(f"L2 error:     {error:.4e}")
