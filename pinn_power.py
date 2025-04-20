@@ -23,7 +23,7 @@ class PowerMethodPINN:
         return torch.tensor(x, dtype=torch.float32, requires_grad=True).to(self.device)
 
     def apply_input_transform(self, x):
-        if self.config.get("periodic", False):
+        if self.config.get("periodic", True):
             return periodic_transform(x, k=self.config.get("pbc_k", 1), periods=self.config.get("periods", None))
         else:
             return x
@@ -41,7 +41,7 @@ class PowerMethodPINN:
         x_input = self.apply_input_transform(x)
         u_raw = self.model(x_input)
 
-        if not self.config.get("periodic", False):
+        if not self.config.get("periodic", True):
             u_pred = self.apply_boundary_condition(x, u_raw)
         else:
             u_pred = u_raw
