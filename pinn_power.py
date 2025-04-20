@@ -13,6 +13,9 @@ class PowerMethodPINN:
         self.u = torch.rand_like(self.x_train[:, :1]).to(self.device)
         self.u = self.u / torch.norm(self.u)
         self.lambda_ = 1.0
+        self.best_lambda = None
+        self.min_loss = float("inf")
+
 
     def sample_points(self, N):
         x = sample_lhs(self.config["domain_lb"], self.config["domain_ub"], N)
