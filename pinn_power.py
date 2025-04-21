@@ -112,7 +112,7 @@ class PowerMethodPINN:
             self.optimizer.step()
 
             if it % 1000 == 0 or it == self.config["adam_steps"] - 1:
-                print(f"[{it:05d}] Loss = {loss_val:.4e} | λ_est = {lambda_val:.8f}")
+                print(f"[{it:05d}] Loss val = {loss_val:.4e} | λ_est = {lambda_val:.8f} | λ_true = {self.config['lambda_true']:.8f} Loss = {loss:.4e}")
 
         if self.checkpoint_path and self.best_model_state:
             torch.save({
