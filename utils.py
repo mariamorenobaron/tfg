@@ -10,14 +10,12 @@ def sample_lhs(lb, ub, N):
 
 
 def compute_laplacian(u, x):
-    grad_u = grad(u, x, grad_outputs=torch.ones_like(u), create_graph=True)[0]
-    laplacian = torch.zeros_like(u)
-
+    lap = 0.0
     for i in range(x.shape[1]):
-        grad_u_i = grad(grad_u[:, i], x, grad_outputs=torch.ones_like(u), create_graph=True)[0][:, i:i+1]
-        laplacian += grad_u_i
-
-    return laplacian
+        grad_u = grad(u, x, create_graph=True, grad_outputs=torch.ones_like(u))[0]
+        grad_u_i = grad(grad_u[:, i], x, grad_outputs=torch.ones_like(grad_u[:, i]), create_graph=True)[0][:, i:i+1]
+        lap += grad_u_i
+    return lap
 
 
 def periodic_transform(x, k=1, periods=None):
