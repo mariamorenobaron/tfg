@@ -125,14 +125,17 @@ class PowerMethodPINN:
             else:
                 u_pred = u_raw
 
-        u_pred = u_pred.cpu().numpy()
+        # ✅ CORREGIMOS AQUÍ
+        x_np = x_eval.detach().cpu().numpy()
+        u_pred = u_pred.detach().cpu().numpy()
         u_pred = u_pred / np.linalg.norm(u_pred)
 
-        u_true = self.config["exact_u"](x_eval.detach().cpu().numpy())
+        u_true = self.config["exact_u"](x_np)
         u_true = u_true / np.linalg.norm(u_true)
 
+        # Plotting
         plot_eigenfunction(
-            x_eval.cpu().numpy(), u_pred, u_true,
+            x_np, u_pred, u_true,
             title="Predicted vs True Eigenfunction",
             save_path="eigenfunction_plot.png"
         )
