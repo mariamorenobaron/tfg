@@ -75,7 +75,6 @@ class PowerMethodPINN:
         loss = loss_PM
 
         loss.backward()
-        self.optimizer.step()
 
         # Estimate λ
         numerator = torch.sum(Lu * u_prev)
@@ -94,7 +93,7 @@ class PowerMethodPINN:
             self.best_lambda = lambda_val
             self.best_model_state = self.model.state_dict()
 
-        return loss_val
+        return loss
 
     def optimize_adam(self):
         self.optimizer = torch.optim.Adam(
@@ -107,7 +106,7 @@ class PowerMethodPINN:
         )
         self.optimizer_name = 'Adam'
 
-        print("🔁 Starting training with Adam...\n")
+        print(" Starting training with Adam...\n")
         for it in range(self.config["adam_steps"]):
             loss = self.optimize_one_epoch()
             self.optimizer.step()
@@ -121,12 +120,12 @@ class PowerMethodPINN:
                 "lambda": self.best_lambda,
                 "loss": self.min_loss
             }, self.checkpoint_path)
-            print(f"\n✅ Model saved at: {self.checkpoint_path}")
-            print(f"📌 Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
+            print(f"\n Model saved at: {self.checkpoint_path}")
+            print(f" Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
 
     def evaluate_and_plot(self):
         if self.config["dimension"] != 1:
-            print("⚠️ Plotting only supported for 1D problems.")
+            print("Plotting only supported for 1D problems.")
             return
 
         x_eval = torch.linspace(
