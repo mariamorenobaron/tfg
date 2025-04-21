@@ -128,7 +128,7 @@ class PowerMethodPINN:
         u_pred = u_pred.cpu().numpy()
         u_pred = u_pred / np.linalg.norm(u_pred)
 
-        u_true = self.config["exact_u"](x_eval.cpu().numpy())
+        u_true = self.config["exact_u"](x_eval.detach().cpu().numpy())
         u_true = u_true / np.linalg.norm(u_true)
 
         plot_eigenfunction(
