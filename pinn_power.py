@@ -54,35 +54,40 @@ class PowerMethodPINN:
         self.model.train()
         self.optimizer.zero_grad()
 
-        # u^(k-1)
+        # Paso 1: u^(k-1)
         u_prev = self.net_u(self.x_train)
         u_prev = u_prev / (torch.norm(u_prev) + 1e-10)
 
-        # Compute Lu = Δu + Mu
+        # Paso 2: Calculamos Lu = Δu + Mu
         Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
 
-        # Estimate λ using Rayleigh quotient
-        numerator = torch.sum(Lu * u_prev)
-        denominator = torch.sum(u_prev ** 2) + 1e-10
-        self.lambda_ = (numerator / denominator)
+        # Paso 3: tmp_loss = ||Lu - λ_prev * u_prev||²
+        tmp_loss = torch.mean((Lu - self.lambda_ * self.u) ** 2)
 
-        # Power iteration step u^(k)
+        # Paso 4: Calculamos nuevo u^{k}
         with torch.no_grad():
             u_new = Lu / (torch.norm(Lu) + 1e-10)
         self.u = u_new
 
-        # Loss PMNN
-        loss = torch.mean((u_prev - u_new) ** 2)
+        # Paso 5: loss_PMNN = ||u_prev - u_new||²
+        loss_PM = torch.mean((u_prev - u_new) ** 2)
+        loss = loss_PM  # puedes multiplicar por alpha si quieres
+
+        # Paso 6: Backpropagation
         loss.backward()
         self.optimizer.step()
 
-        # Save best values
-        loss_val = loss.item()
+        # Paso 7: Cálculo lambda (Rayleigh quotient)
+        numerator = torch.sum(Lu * u_prev)
+        denominator = torch.sum(u_prev ** 2) + 1e-10
+        self.lambda_ = numerator / denominator
         lambda_val = self.lambda_.item()
+        loss_val = tmp_loss.item()  # <- usamos tmp_loss para comparar
 
         self.loss_history.append(loss_val)
         self.lambda_history.append(lambda_val)
 
+        # Paso 8: Guardar mejor modelo según tmp_loss
         if loss_val < self.min_loss:
             self.min_loss = loss_val
             self.best_lambda = lambda_val
