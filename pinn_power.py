@@ -79,7 +79,7 @@ class PowerMethodPINN:
         # Estimate λ
         numerator = torch.sum(Lu * u_prev)
         denominator = torch.sum(u_prev ** 2) + 1e-10
-        self.lambda_ = numerator / denominator
+        self.lambda_ = torch.max(numerator / denominator)
 
         # Save best λ if loss improved
         loss_val = tmp_loss.item()
@@ -93,7 +93,7 @@ class PowerMethodPINN:
             self.best_lambda = lambda_val
             self.best_model_state = self.model.state_dict()
 
-        return loss
+        return loss, loss_val, lambda_val
 
     def optimize_adam(self):
         self.optimizer = torch.optim.Adam(
@@ -108,11 +108,11 @@ class PowerMethodPINN:
 
         print(" Starting training with Adam...\n")
         for it in range(self.config["adam_steps"]):
-            loss = self.optimize_one_epoch()
+            loss, loss_val, lambda_val = self.optimize_one_epoch()
             self.optimizer.step()
 
             if it % 1000 == 0 or it == self.config["adam_steps"] - 1:
-                print(f"[{it:05d}] Loss = {loss:.4e} | λ_est = {self.lambda_.item():.8f}")
+                print(f"[{it:05d}] Loss = {loss_val:.4e} | λ_est = {lambda_val:.8f}")
 
         if self.checkpoint_path and self.best_model_state:
             torch.save({
