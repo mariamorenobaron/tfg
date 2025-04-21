@@ -6,7 +6,7 @@ CONFIG = {
     "dimension": d,
    "domain_lb": np.zeros(d),
     "domain_ub": np.ones(d),
-    "M": 100.0,
+    "M": 50,
 
     "architecture": "MLP",
     "optimizer": "Adam",
@@ -19,7 +19,7 @@ CONFIG = {
     "n_train": 15000,
     "checkpoint_path": "model1_1d.pt",
 
-    "lambda_true":100 - d * np.pi**2,
+    "lambda_true":50 - d * np.pi**2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
 
     "periodic": False,
