@@ -1,5 +1,5 @@
 from config import CONFIG
-from train_utils import train_adam_with_mlp, train_adam_with_resnet
+from init_train import train_adam_with_mlp, train_adam_with_resnet
 
 def train_selected():
     architecture = CONFIG["architecture"]
