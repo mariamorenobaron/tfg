@@ -3,18 +3,22 @@ import torch
 from torch.autograd import grad
 import os
 import json
+import matplotlib.pyplot as plt
 
 def sample_lhs(lb, ub, N):
     return lb + (ub - lb) * np.random.rand(N, lb.shape[0])
 
+
 def compute_laplacian(u, x):
-    grads = grad(u, x, grad_outputs=torch.ones_like(u), create_graph=True)[0]
-    lap = 0
+    grad_u = grad(u, x, grad_outputs=torch.ones_like(u), create_graph=True)[0]
+    laplacian = torch.zeros_like(u)
+
     for i in range(x.shape[1]):
-        grads_i = grads[:, i:i+1]
-        grad2 = grad(grads_i, x, grad_outputs=torch.ones_like(grads_i), create_graph=True)[0][:, i:i+1]
-        lap += grad2
-    return lap
+        grad_u_i = grad(grad_u[:, i], x, grad_outputs=torch.ones_like(u), create_graph=True)[0][:, i:i+1]
+        laplacian += grad_u_i
+
+    return laplacian
+
 
 def periodic_transform(x, k=1, periods=None):
     d = x.shape[1]
@@ -53,3 +57,17 @@ def load_model(model_class_dict, folder="saved_model"):
         model = model_class_dict["ResNet"](in_num=input_dim, out_num=1, block_layers=[width]*2, block_num=depth)
     model.load_state_dict(torch.load(os.path.join(folder, "model_weights.pt")))
     return model, arch_config
+
+def plot_eigenfunction(x, u_pred, u_true=None, title="Autofunción estimada vs exacta", save_path=None):
+    plt.figure(figsize=(8, 4))
+    plt.plot(x, u_pred, label="u_pred (estimada)", linewidth=2)
+    if u_true is not None:
+        plt.plot(x, u_true, label="u_true (exacta)", linestyle="--", linewidth=2)
+    plt.xlabel("x")
+    plt.ylabel("u(x)")
+    plt.title(title)
+    plt.legend()
+    plt.grid(True)
+    if save_path:
+        plt.savefig(save_path)
+    plt.show()

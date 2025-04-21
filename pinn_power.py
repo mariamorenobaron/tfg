@@ -1,7 +1,7 @@
 import torch
 import os
 import numpy as np
-from utils import sample_lhs, compute_laplacian, periodic_transform
+from utils import sample_lhs, compute_laplacian, periodic_transform, plot_eigenfunction
 
 
 class PowerMethodPINN:
@@ -107,3 +107,33 @@ class PowerMethodPINN:
                 "loss": self.min_loss
             }, self.checkpoint_path)
             print(f"\n✅ Model saved at: {self.checkpoint_path}")
+
+    def evaluate_and_plot(self):
+        # Sample 1D evaluation points
+        x_eval = torch.linspace(
+            self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
+        ).view(-1, 1).to(self.device)
+
+        x_eval.requires_grad_(True)
+
+        # Transformed input
+        x_input = self.apply_input_transform(x_eval)
+        with torch.no_grad():
+            u_raw = self.model(x_input)
+            if not self.config.get("periodic", False):
+                u_pred = self.apply_boundary_condition(x_eval, u_raw)
+            else:
+                u_pred = u_raw
+
+        u_pred = u_pred.cpu().numpy()
+        u_pred = u_pred / np.linalg.norm(u_pred)
+
+        u_true = self.config["exact_u"](x_eval.cpu().numpy())
+        u_true = u_true / np.linalg.norm(u_true)
+
+        plot_eigenfunction(
+            x_eval.cpu().numpy(), u_pred, u_true,
+            title="Predicted vs True Eigenfunction",
+            save_path="eigenfunction_plot.png"
+        )
+

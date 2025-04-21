@@ -16,3 +16,4 @@ def train_selected():
 if __name__ == "__main__":
     trained_pinn = train_selected()
     print("Training completed.")
+    trained_pinn.evaluate_and_plot()
