@@ -9,7 +9,7 @@ CONFIG = {
     "M": 100.0,
 
     "architecture": "MLP",
-    "optimizer": "Adam+LBFGS",
+    "optimizer": "Adam",
     "depth": 4,
     "width": 20,
 
