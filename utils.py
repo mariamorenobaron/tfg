@@ -10,7 +10,7 @@ def sample_lhs(lb, ub, N):
     return lb + (ub - lb) * np.random.rand(N, lb.shape[0])
 
 
-ef compute_laplacian(u, x):
+def compute_laplacian(u, x):
     """∇²u en todos los puntos x (Laplaciano escalar de una sola salida)."""
     assert u.dtype == torch.float64 and x.dtype == torch.float64, "Usa float64"
     device = u.device                     # (o x.device, es lo mismo)
