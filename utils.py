@@ -3,12 +3,12 @@ import torch
 from torch.autograd import grad
 import os
 import json
+from pyDOE import lhs
 import matplotlib.pyplot as plt
 torch.set_default_dtype(torch.float64)  
 
-def sample_lhs(lb, ub, N):
-    return lb + (ub - lb) * np.random.rand(N, lb.shape[0])
-
+def sample_lhs(lb, ub, N, d):
+    return  lb + (ub-lb)*lhs(d, N)
 
 def compute_laplacian(u, x):
     """∇²u en todos los puntos x (Laplaciano escalar de una sola salida)."""

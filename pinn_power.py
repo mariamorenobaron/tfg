@@ -12,7 +12,7 @@ class PowerMethodPINN:
         self.model.to(self.device)
 
         # Puntos de entrenamiento
-        x = sample_lhs(config["domain_lb"], config["domain_ub"], config["n_train"])
+        x = sample_lhs(config["domain_lb"], config["domain_ub"], config["n_train"], config["dimension"])
         self.x_train = torch.tensor(x, dtype=torch.float64, requires_grad=True).to(self.device)
 
         # Inicialización de `u` y otros parámetros
