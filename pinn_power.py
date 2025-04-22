@@ -38,10 +38,10 @@ class PowerMethodPINN:
 
     def apply_boundary_condition(self, x, u):
         g = torch.ones_like(u)
+        lb, ub = self.config["domain_lb"], self.config["domain_ub"]
         for i in range(x.shape[1]):
             xi = x[:, i:i+1]
-            lb, ub = self.config["domain_lb"][i], self.config["domain_ub"][i]
-            g *= (xi - lb) * (ub - xi)
+            g *= (torch.exp(xi - lb[i]) - 1.0) * (torch.exp(-(xi - ub[i])) - 1.0)
         return g * u
 
     def net_u(self, x):
