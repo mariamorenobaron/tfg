@@ -19,7 +19,7 @@ class PowerMethodPINN:
         self.ub = torch.as_tensor(config["domain_ub"], dtype=torch.float64, device=self.device)
 
         # puntos de entrenamiento
-        x = sample_lhs(self.lb.cpu().numpy(), self.ub.cpu().numpy(), config["n_train"])
+        x = sample_lhs(self.lb.cpu().numpy(), self.ub.cpu().numpy(), config["n_train"]).astype(np.float64)
         self.x_train = torch.tensor(x, dtype=torch.float64, requires_grad=True, device=self.device)
 
         # vector u inicial
@@ -80,6 +80,7 @@ class PowerMethodPINN:
         # u^{k}  (sin gradiente)
         with torch.no_grad():
             u_new = Lu / (torch.norm(Lu) + 1e-12)
+            self.lambda_ = torch.sum(Lu * u_prev) / (torch.sum(u_prev ** 2) + 1e-12)
         self.u = u_new
 
         # loss_PMNN = ||u_prev - u_new||²
@@ -88,8 +89,6 @@ class PowerMethodPINN:
         # ---------  NO hacemos step aquí: lo hace el exterior ---------
         # self.optimizer.step()
 
-        # λ_k  por cociente de Rayleigh
-        self.lambda_ = torch.sum(Lu * u_prev) / (torch.sum(u_prev ** 2) + 1e-12)
 
         # track & guardar mejor
         loss_val   = tmp_loss.item()
