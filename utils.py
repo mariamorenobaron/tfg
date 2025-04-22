@@ -12,8 +12,10 @@ def sample_lhs(lb, ub, N):
 def compute_laplacian(u, x):
     lap = 0.0
     for i in range(x.shape[1]):
-        grad_u = grad(u, x, create_graph=True, grad_outputs=torch.ones_like(u))[0]
-        grad_u_i = grad(grad_u[:, i], x, grad_outputs=torch.ones_like(grad_u[:, i]), create_graph=True)[0][:, i:i+1]
+        grad_u   = grad(u, x, create_graph=True, grad_outputs=torch.ones_like(u))[0]   
+        grad_u_i = grad(grad_u[:, i:i+1], x,
+                        grad_outputs=torch.ones_like(grad_u[:, i:i+1]),
+                        create_graph=True)[0][:, i:i+1]                               
         lap += grad_u_i
     return lap
 
