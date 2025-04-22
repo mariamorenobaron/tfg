@@ -4,6 +4,7 @@ from torch.autograd import grad
 import os
 import json
 import matplotlib.pyplot as plt
+torch.set_default_dtype(torch.float64)  
 
 def sample_lhs(lb, ub, N):
     return lb + (ub - lb) * np.random.rand(N, lb.shape[0])
