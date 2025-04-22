@@ -22,6 +22,7 @@ class PowerMethodPINN:
 
         # Variables de seguimiento
         self.min_loss = float("inf")
+        self.loss = None
         self.best_lambda = None
         self.best_model_state = None
         self.checkpoint_path = config["checkpoint_path"]
@@ -93,6 +94,7 @@ class PowerMethodPINN:
 
         if loss_val < self.min_loss:
             self.min_loss = loss_val
+            self.loss = loss
             self.best_lambda = lambda_val
             self.best_model_state = self.model.state_dict()
 
