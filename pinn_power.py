@@ -2,7 +2,7 @@ import os
 import torch
 import numpy as np
 from utils import sample_lhs, compute_laplacian, periodic_transform, plot_eigenfunction
-
+torch.set_default_dtype(torch.float64) 
 
 class PowerMethodPINN:
     def __init__(self, model, config):
@@ -13,12 +13,12 @@ class PowerMethodPINN:
 
         # Training points
         x = sample_lhs(config["domain_lb"], config["domain_ub"], config["n_train"])
-        self.x_train = torch.tensor(x, dtype=torch.float32, requires_grad=True).to(self.device)
+        self.x_train = torch.tensor(x, dtype=torch.float64, requires_grad=True).to(self.device)
 
         # Init u and parameters
         self.u = torch.rand_like(self.x_train[:, :1]).to(self.device)
         self.u = self.u / torch.norm(self.u)
-        self.lambda_ = torch.tensor(1.0, dtype=torch.float32, device=self.device)
+        self.lambda_ = torch.tensor(1.0, dtype=torch.float64, device=self.device)
 
         # Tracking
         self.min_loss = float("inf")
