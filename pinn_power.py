@@ -83,7 +83,7 @@ class PowerMethodPINN:
         # Estimate λ
         numerator = torch.sum(Lu * u_prev)
         denominator = torch.sum(u_prev ** 2) + 1e-10
-        self.lambda_ = torch.max(numerator / denominator)
+        self.lambda_ = numerator / denominator
 
         # Guardar el mejor λ si el error disminuye
         loss_val = tmp_loss.item()
