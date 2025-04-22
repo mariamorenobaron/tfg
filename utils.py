@@ -10,15 +10,34 @@ def sample_lhs(lb, ub, N):
     return lb + (ub - lb) * np.random.rand(N, lb.shape[0])
 
 
-def compute_laplacian(u, x):
-    lap = 0.0
+ef compute_laplacian(u, x):
+    """∇²u en todos los puntos x (Laplaciano escalar de una sola salida)."""
+    assert u.dtype == torch.float64 and x.dtype == torch.float64, "Usa float64"
+    device = u.device                     # (o x.device, es lo mismo)
+
+    lap = torch.zeros_like(u)             # N×1
+
+    # Recorremos cada dirección espacial
     for i in range(x.shape[1]):
-        grad_u   = grad(u, x, create_graph=True, grad_outputs=torch.ones_like(u))[0]   
-        grad_u_i = grad(grad_u[:, i:i+1], x,
-                        grad_outputs=torch.ones_like(grad_u[:, i:i+1]),
-                        create_graph=True)[0][:, i:i+1]                               
-        lap += grad_u_i
-    return lap
+        # ∂u/∂x_i
+        grad_u = grad(
+            outputs=u,
+            inputs=x,
+            grad_outputs=torch.ones_like(u, device=device),   # N×1
+            create_graph=True
+        )[0]                                                   # N×d
+
+        # ∂²u/∂x_i²   (segunda derivada respecto a la i‑ésima coordenada)
+        grad_u_i = grad(
+            outputs=grad_u[:, i:i+1],                          # N×1
+            inputs=x,
+            grad_outputs=torch.ones_like(grad_u[:, i:i+1], device=device),
+            create_graph=True
+        )[0][:, i:i+1]                                         # N×1
+
+        lap = lap + grad_u_i                                   # acumulamos
+
+    return lap 
 
 
 def periodic_transform(x, k=1, periods=None):
