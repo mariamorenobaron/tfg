@@ -3,6 +3,7 @@ import torch
 from torch.autograd import grad
 import os
 import json
+import pyODE
 from pyDOE import lhs
 import matplotlib.pyplot as plt
 torch.set_default_dtype(torch.float64)  
