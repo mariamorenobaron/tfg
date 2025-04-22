@@ -13,7 +13,7 @@ CONFIG = {
     "depth": 4,
     "width": 50,
 
-    "adam_steps": 30000,
+    "adam_steps": 50000,
     "adam_lr": 1e-3,
     "lbfgs_steps": 0,
     "n_train": 15000,
