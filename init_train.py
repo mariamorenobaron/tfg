@@ -10,7 +10,7 @@ def train_adam_with_mlp(config):
     input_dim = config["dimension"] * (2 * config["pbc_k"] if config["periodic"] else 1)
     config["input_dim"] = input_dim
     layers = [input_dim] + [config["width"]] * config["depth"] + [1]
-    model = MLP(layers)
+    model = MLP(layers).double()
     pinn = PowerMethodPINN(model, config)
 
     start = time.time()
