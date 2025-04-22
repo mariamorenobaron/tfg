@@ -11,9 +11,9 @@ CONFIG = {
     "architecture": "MLP",
     "optimizer": "Adam",
     "depth": 4,
-    "width": 40,
+    "width": 50,
 
-    "adam_steps": 30000,
+    "adam_steps": 10000,
     "adam_lr": 1e-3,
     "lbfgs_steps": 0,
     "n_train": 15000,
