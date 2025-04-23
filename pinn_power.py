@@ -34,7 +34,8 @@ class PowerMethodPINN:
 
     def coor_shift(self, X, lb, ub):
         """Apply coordinate shift to input X based on bounds lb and ub"""
-        return 2.0 * (X - lb) / (ub - lb) - 1.0
+        X_shift  = 2.0 * (X - lb) / (ub - lb) - 1.0
+        return X_shift
 
     def apply_input_transform(self, x):
         """Apply any transformation (e.g., periodic boundary conditions) to input."""
@@ -56,12 +57,14 @@ class PowerMethodPINN:
         x_input = self.apply_input_transform(x)
         # Apply coordinate shift before feeding into the model
         x_input = self.coor_shift(x_input, self.config["domain_lb"], self.config["domain_ub"])
-        u_pred = self.model(x_input)
+        x = torch.tensor(x_input, dtype=torch.float64, requires_grad=True).to(self.device)
+        u_pred = self.model(x)
         if not self.config.get("periodic", False):
             u_pred = self.apply_boundary_condition(x, u_pred)
         return u_pred
 
     def optimize_one_epoch(self):
+        """Perform one optimization step."""
         self.model.train()
         self.optimizer.zero_grad()
 
