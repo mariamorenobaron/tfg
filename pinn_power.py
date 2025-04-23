@@ -32,21 +32,14 @@ class PowerMethodPINN:
         self.optimizer = None
         self.optimizer_name = None
 
+        self.lb = torch.tensor(config["domain_lb"], dtype=torch.float64).to(self.device)
+        self.ub = torch.tensor(config["domain_ub"], dtype=torch.float64).to(self.device)
+        self.d = config["dimension"]
+
+
     def coor_shift(self, X, lb, ub):
-        # Ensure that tensors are moved to CPU before numpy operations
-        X_cpu = X.cpu()  # Move X to CPU if it's on GPU
-        lb_cpu = lb.cpu()  # Move lb to CPU if it's on GPU
-        ub_cpu = ub.cpu()  # Move ub to CPU if it's on GPU
-
-        # Perform the coordinate shift
-        X_shift_cpu = 2.0 * (X_cpu - lb_cpu) / (ub_cpu - lb_cpu) - 1.0
-
-        # If the original tensor was on GPU, move the result back to GPU
-        if X.is_cuda:
-            X_shift = X_shift_cpu.to(self.device)  # Move the result back to GPU if it was originally on GPU
-        else:
-            X_shift = X_shift_cpu  # Keep it on CPU if the original tensor was on CPU
-
+        """Normalize coordinates to the range [-1, 1]."""
+        X_shift = 2.0 * (X - lb) / (ub - lb) - 1.0
         return X_shift
 
     def apply_input_transform(self, x):
@@ -68,7 +61,7 @@ class PowerMethodPINN:
         """Calculate u from the model, applying coordinate shift and boundary conditions."""
         x_input = self.apply_input_transform(x)
         # Apply coordinate shift before feeding into the model
-        x_input = self.coor_shift(x_input, self.config["domain_lb"], self.config["domain_ub"])
+        x_input = self.coor_shift(x_input, self.lb, self.ub)
         u_pred = self.model(x_input)
         if not self.config.get("periodic", False):
             u_pred = self.apply_boundary_condition(x, u_pred)
