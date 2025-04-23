@@ -11,12 +11,12 @@ CONFIG = {
     "architecture": "MLP",
     "optimizer": "Adam",
     "depth": 4,
-    "width": 50,
+    "width": 20,
 
     "adam_steps": 50000,
     "adam_lr": 1e-3,
     "lbfgs_steps": 0,
-    "n_train": 15000,
+    "n_train": 10000,
     "checkpoint_path": "model1_1d.pt",
 
     "lambda_true": 100 - d * np.pi**2,

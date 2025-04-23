@@ -61,7 +61,9 @@ class PowerMethodPINN:
 
         # u_prev = N(x)
         u_prev = self.net_u(self.x_train)
-        u_prev = u_prev / (torch.norm(u_prev) + 1e-10)
+        N = self.x_train.shape[0]
+        norm_sq_prev = torch.sum(u_prev ** 2) / N
+        u_prev = u_prev / (torch.sqrt(norm_sq_prev) + 1e-10)
 
         # Compute Lu
         Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
@@ -71,7 +73,8 @@ class PowerMethodPINN:
 
         # u^k ← Lu / ||Lu||
         with torch.no_grad():
-            u_new = Lu / (torch.norm(Lu) + 1e-10)
+            norm_sq_Lu = torch.sum(Lu ** 2) / N
+            u_new = Lu / (torch.sqrt(norm_sq_Lu) + 1e-10)
         self.u = u_new
 
         # PMNN loss = ||u_prev - u_new||²
@@ -82,8 +85,8 @@ class PowerMethodPINN:
 
         # Estimate λ
         numerator = torch.sum(Lu * u_prev)
-        denominator = torch.sum(u_prev ** 2) + 1e-10
-        self.lambda_ = numerator / denominator
+        denominator = torch.sum(u_prev ** 2) / N + 1e-10
+        self.lambda_ = torch.max(numerator / denominator)
 
         # Guardar el mejor λ si el error disminuye
         loss_val = tmp_loss.item()
