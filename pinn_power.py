@@ -33,8 +33,20 @@ class PowerMethodPINN:
         self.optimizer_name = None
 
     def coor_shift(self, X, lb, ub):
-        """Apply coordinate shift to input X based on bounds lb and ub"""
-        X_shift  = 2.0 * (X - lb) / (ub - lb) - 1.0
+        # Ensure that tensors are moved to CPU before numpy operations
+        X_cpu = X.cpu()  # Move X to CPU if it's on GPU
+        lb_cpu = lb.cpu()  # Move lb to CPU if it's on GPU
+        ub_cpu = ub.cpu()  # Move ub to CPU if it's on GPU
+
+        # Perform the coordinate shift
+        X_shift_cpu = 2.0 * (X_cpu - lb_cpu) / (ub_cpu - lb_cpu) - 1.0
+
+        # If the original tensor was on GPU, move the result back to GPU
+        if X.is_cuda:
+            X_shift = X_shift_cpu.to(self.device)  # Move the result back to GPU if it was originally on GPU
+        else:
+            X_shift = X_shift_cpu  # Keep it on CPU if the original tensor was on CPU
+
         return X_shift
 
     def apply_input_transform(self, x):
@@ -57,8 +69,7 @@ class PowerMethodPINN:
         x_input = self.apply_input_transform(x)
         # Apply coordinate shift before feeding into the model
         x_input = self.coor_shift(x_input, self.config["domain_lb"], self.config["domain_ub"])
-        x = torch.tensor(x_input, dtype=torch.float64, requires_grad=True).to(self.device)
-        u_pred = self.model(x)
+        u_pred = self.model(x_input)
         if not self.config.get("periodic", False):
             u_pred = self.apply_boundary_condition(x, u_pred)
         return u_pred
