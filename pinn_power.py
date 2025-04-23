@@ -32,12 +32,18 @@ class PowerMethodPINN:
         self.optimizer = None
         self.optimizer_name = None
 
+    def coor_shift(self, X, lb, ub):
+        """Apply coordinate shift to input X based on bounds lb and ub"""
+        return 2.0 * (X - lb) / (ub - lb) - 1.0
+
     def apply_input_transform(self, x):
+        """Apply any transformation (e.g., periodic boundary conditions) to input."""
         if self.config.get("periodic", False):
             return periodic_transform(x, k=self.config.get("pbc_k", 1), periods=self.config.get("periods", None))
         return x
 
     def apply_boundary_condition(self, x, u):
+        """Apply boundary conditions to input u."""
         g = torch.ones_like(u)
         lb, ub = self.config["domain_lb"], self.config["domain_ub"]
         for i in range(x.shape[1]):
@@ -46,7 +52,10 @@ class PowerMethodPINN:
         return g * u
 
     def net_u(self, x):
+        """Calculate u from the model, applying coordinate shift and boundary conditions."""
         x_input = self.apply_input_transform(x)
+        # Apply coordinate shift before feeding into the model
+        x_input = self.coor_shift(x_input, self.config["domain_lb"], self.config["domain_ub"])
         u_pred = self.model(x_input)
         if not self.config.get("periodic", False):
             u_pred = self.apply_boundary_condition(x, u_pred)
@@ -61,32 +70,35 @@ class PowerMethodPINN:
 
         # u_prev = N(x)
         u_prev = self.net_u(self.x_train)
-        N = self.x_train.shape[0]
-        norm_sq_prev = torch.sum(u_prev ** 2) / N
-        u_prev = u_prev / (torch.sqrt(norm_sq_prev) + 1e-10)
+
+        # Normalize u_prev the same way (L2 normalization)
+        u_prev = u_prev / torch.norm(u_prev, p=2)
 
         # Compute Lu
         Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
 
+        # Define MSELoss function
+        mse_loss_fn = torch.nn.MSELoss(reduction='mean')
+
         # tmp_loss = ||Lu - λ_prev * u_prev||²
-        tmp_loss = torch.mean((Lu - self.lambda_ * self.u) ** 2)
+        tmp_loss = mse_loss_fn(Lu, self.lambda_ * self.u)
 
         # u^k ← Lu / ||Lu||
         with torch.no_grad():
-            norm_sq_Lu = torch.sum(Lu ** 2) / N
-            u_new = Lu / (torch.sqrt(norm_sq_Lu) + 1e-10)
+            u_new = Lu / torch.norm(Lu, p=2)  # L2 normalization
+
         self.u = u_new
 
         # PMNN loss = ||u_prev - u_new||²
-        loss_PM = torch.mean((u_prev - u_new) ** 2)
+        loss_PM = mse_loss_fn(u_prev, u_new)
         loss = loss_PM
 
         loss.backward()
 
         # Estimate λ
         numerator = torch.sum(Lu * u_prev)
-        denominator = torch.sum(u_prev ** 2) / N + 1e-10
-        self.lambda_ = torch.max(numerator / denominator)
+        denominator = torch.sum(u_prev ** 2) + 1e-10
+        self.lambda_ = numerator / denominator
 
         # Guardar el mejor λ si el error disminuye
         loss_val = tmp_loss.item()
@@ -104,6 +116,7 @@ class PowerMethodPINN:
         return loss, loss_val, lambda_val
 
     def optimize_adam(self):
+        """Optimize the model using Adam optimizer."""
         self.optimizer = torch.optim.Adam(
             self.model.parameters(),
             lr=self.config["adam_lr"],
@@ -132,6 +145,7 @@ class PowerMethodPINN:
             print(f" Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
 
     def evaluate_and_plot(self):
+        """Evaluate and plot the eigenfunction."""
         if self.config["dimension"] != 1:
             print("Plotting only supported for 1D problems.")
             return
