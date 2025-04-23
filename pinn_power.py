@@ -181,3 +181,14 @@ class PowerMethodPINN:
             title="Predicted vs True Eigenfunction",
             save_path="eigenfunction_plot.png"
         )
+
+        # Calculate L2 error
+        l2_error = np.linalg.norm(u_pred - u_true) / np.sqrt(u_pred.shape[0])
+        print(f"L2 Error: {l2_error:.4e}")
+
+        # Calculate L2 error for lambda
+        lambda_pred = self.best_lambda
+        lambda_true = self.config["lambda_true"]
+        lambda_error = np.abs(lambda_pred - lambda_true)
+        print(f"Lambda Error: {lambda_error:.4e}")
+
