@@ -79,7 +79,7 @@ class PowerMethodPINN:
         u_prev = self.net_u(self.x_train)
 
         # Normalize u_prev the same way (L2 normalization)
-        u_prev = u_prev / torch.norm(u_prev, p=2)
+        #u_prev = u_prev / torch.norm(u_prev, p=2)
 
         # Compute Lu
         Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
@@ -93,7 +93,6 @@ class PowerMethodPINN:
         # u^k ← Lu / ||Lu||
         with torch.no_grad():
             u_new = Lu / torch.norm(Lu, p=2)  # L2 normalization
-
         self.u = u_new
 
         # PMNN loss = ||u_prev - u_new||²
