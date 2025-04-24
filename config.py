@@ -1,6 +1,6 @@
 import numpy as np
 
-d = 2
+d = 1
 
 CONFIG = {
     "dimension": d,
@@ -16,7 +16,7 @@ CONFIG = {
     "adam_steps": 50000,
     "adam_lr": 1e-3,
     "lbfgs_steps": 0,
-    "n_train": 20000,
+    "n_train": 10000,
     "checkpoint_path": "model1_1d.pt",
 
     "lambda_true": 100 - d * np.pi**2,
