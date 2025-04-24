@@ -179,58 +179,58 @@ class PowerMethodPINN:
         print(f"Relative Error (λ): {rel_error_lambda:.4e}")
     
     def evaluate_and_plot(self):
-    """Evaluate and plot the eigenfunction."""
-    if self.config["dimension"] != 1:
-        # If dimension is not 1, just calculate the error
-        print("Evaluating error only for non-1D problems.")
-        
-        # Sample 1D evaluation points (just for error calculation)
-        x_eval = torch.linspace(
-            self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
-        ).view(-1, 1).to(self.device)
-        
-        with torch.no_grad():
-            x_input = self.apply_input_transform(x_eval)
-            u_raw = self.model(x_input)
-            if not self.config.get("periodic", False):
-                u_pred = self.apply_boundary_condition(x_eval, u_raw)
-            else:
-                u_pred = u_raw
-
-        x_np = x_eval.detach().cpu().numpy()
-        u_pred = u_pred.detach().cpu().numpy()
-
-        # Compute the true solution (for error evaluation)
-        u_true = self.config["exact_u"](x_np)
-        
-        # Call the error calculation function
-        self.evaluate_errors_and_plot(x_np, u_pred, u_true)
-    else:
-        # If dimension is 1, perform both evaluation and plotting
-        x_eval = torch.linspace(
-            self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
-        ).view(-1, 1).to(self.device)
-        x_eval.requires_grad_(True)
-
-        with torch.no_grad():
-            x_input = self.apply_input_transform(x_eval)
-            u_raw = self.model(x_input)
-            if not self.config.get("periodic", False):
-                u_pred = self.apply_boundary_condition(x_eval, u_raw)
-            else:
-                u_pred = u_raw
-
-        x_np = x_eval.detach().cpu().numpy()
-        u_pred = u_pred.detach().cpu().numpy()
-
-        u_true = self.config["exact_u"](x_np)
-        u_true = u_true / np.linalg.norm(u_true)
-
-        plot_eigenfunction(
-            x_np, u_pred, u_true,
-            title="Predicted vs True Eigenfunction",
-            save_path="eigenfunction_plot.png"
-        )
-
-        # Call the error calculation function
-        self.evaluate_errors_and_plot(x_np, u_pred, u_true)
+        """Evaluate and plot the eigenfunction."""
+        if self.config["dimension"] != 1:
+            # If dimension is not 1, just calculate the error
+            print("Evaluating error only for non-1D problems.")
+            
+            # Sample 1D evaluation points (just for error calculation)
+            x_eval = torch.linspace(
+                self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
+            ).view(-1, 1).to(self.device)
+            
+            with torch.no_grad():
+                x_input = self.apply_input_transform(x_eval)
+                u_raw = self.model(x_input)
+                if not self.config.get("periodic", False):
+                    u_pred = self.apply_boundary_condition(x_eval, u_raw)
+                else:
+                    u_pred = u_raw
+    
+            x_np = x_eval.detach().cpu().numpy()
+            u_pred = u_pred.detach().cpu().numpy()
+    
+            # Compute the true solution (for error evaluation)
+            u_true = self.config["exact_u"](x_np)
+            
+            # Call the error calculation function
+            self.evaluate_errors_and_plot(x_np, u_pred, u_true)
+        else:
+            # If dimension is 1, perform both evaluation and plotting
+            x_eval = torch.linspace(
+                self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
+            ).view(-1, 1).to(self.device)
+            x_eval.requires_grad_(True)
+    
+            with torch.no_grad():
+                x_input = self.apply_input_transform(x_eval)
+                u_raw = self.model(x_input)
+                if not self.config.get("periodic", False):
+                    u_pred = self.apply_boundary_condition(x_eval, u_raw)
+                else:
+                    u_pred = u_raw
+    
+            x_np = x_eval.detach().cpu().numpy()
+            u_pred = u_pred.detach().cpu().numpy()
+    
+            u_true = self.config["exact_u"](x_np)
+            u_true = u_true / np.linalg.norm(u_true)
+    
+            plot_eigenfunction(
+                x_np, u_pred, u_true,
+                title="Predicted vs True Eigenfunction",
+                save_path="eigenfunction_plot.png"
+            )
+    
+            # Call the error calculation function
+            self.evaluate_errors_and_plot(x_np, u_pred, u_true)
