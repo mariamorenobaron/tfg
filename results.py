@@ -9,7 +9,6 @@ from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
 from utils import load_model
 
-# Ruta base con carpetas de modelos guardados
 MODEL_DIRS = [
     "saved_model_mlp_d1",
     "saved_model_resnet_d1",

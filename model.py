@@ -36,7 +36,6 @@ class ResNet(nn.Module):
         self.out_linear = nn.Linear(block_layers[-1], out_num)
         self.act_func = act_func
 
-        # Create residual blocks
         self.jump_list = nn.ModuleList()
         self.mlps = nn.ModuleList()
 
@@ -46,7 +45,6 @@ class ResNet(nn.Module):
             xavier_init(jump)
             self.jump_list.append(jump)
 
-            # Deep path (MLP)
             mlp = MLP(block_layers, act_func)
             self.mlps.append(mlp)
 
