@@ -154,55 +154,58 @@ class PowerMethodPINN:
         """Calculate and print errors (L2 and relative) for eigenfunction and lambda."""
         # Normalize u_pred
         u_pred = u_pred / np.linalg.norm(u_pred)
-
+    
+        # Check if the eigenfunction is inverted
+        if np.max(u_pred) * np.max(u_true) < 0:
+            print("Eigenfunction is inverted. Correcting...")
+            u_pred = -u_pred  # Flip the sign to correct the inversion
+    
         # Calculate L2 error
         l2_error = np.linalg.norm(u_pred - u_true) / np.sqrt(u_pred.shape[0])
         print(f"L2 Error: {l2_error:.4e}")
-
+    
         # Calculate Relative Error for Eigenfunction
         rel_error_u = np.linalg.norm(u_pred - u_true) / np.linalg.norm(u_true)
         print(f"Relative Error (u): {rel_error_u:.4e}")
-
+    
         # Calculate L2 error for lambda
         lambda_pred = self.best_lambda
         lambda_true = self.config["lambda_true"]
         lambda_error = np.abs(lambda_pred - lambda_true)
         print(f"Lambda Error: {lambda_error:.4e}")
-
+    
         # Calculate Relative Error for Lambda
         rel_error_lambda = lambda_error / lambda_true
         print(f"Relative Error (λ): {rel_error_lambda:.4e}")
-
+    
     def evaluate_and_plot(self):
-        """Evaluate and plot the eigenfunction."""
-        if self.config["dimension"] != 1:
-            # If dimension is not 1, just calculate the error
-            print("Evaluating error only for non-1D problems.")
+    """Evaluate and plot the eigenfunction."""
+    if self.config["dimension"] != 1:
+        # If dimension is not 1, just calculate the error
+        print("Evaluating error only for non-1D problems.")
+        
+        # Sample 1D evaluation points (just for error calculation)
+        x_eval = torch.linspace(
+            self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
+        ).view(-1, 1).to(self.device)
+        
+        with torch.no_grad():
+            x_input = self.apply_input_transform(x_eval)
+            u_raw = self.model(x_input)
+            if not self.config.get("periodic", False):
+                u_pred = self.apply_boundary_condition(x_eval, u_raw)
+            else:
+                u_pred = u_raw
 
-            # Sample 1D evaluation points (just for error calculation)
-            x_eval = torch.linspace(
-                self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
-            ).view(-1, 1).to(self.device)
+        x_np = x_eval.detach().cpu().numpy()
+        u_pred = u_pred.detach().cpu().numpy()
 
-            with torch.no_grad():
-                x_input = self.apply_input_transform(x_eval)
-                u_raw = self.model(x_input)
-                if not self.config.get("periodic", False):
-                    u_pred = self.apply_boundary_condition(x_eval, u_raw)
-                else:
-                    u_pred = u_raw
-
-            x_np = x_eval.detach().cpu().numpy()
-            u_pred = u_pred.detach().cpu().numpy()
-
-            # Compute the true solution (for error evaluation)
-            u_true = self.config["exact_u"](x_np)
-
-            # Call the error calculation function
-            self.evaluate_errors_and_plot(x_np, u_pred, u_true)
-
-            return
-
+        # Compute the true solution (for error evaluation)
+        u_true = self.config["exact_u"](x_np)
+        
+        # Call the error calculation function
+        self.evaluate_errors_and_plot(x_np, u_pred, u_true)
+    else:
         # If dimension is 1, perform both evaluation and plotting
         x_eval = torch.linspace(
             self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
@@ -231,6 +234,3 @@ class PowerMethodPINN:
 
         # Call the error calculation function
         self.evaluate_errors_and_plot(x_np, u_pred, u_true)
-
-
-
