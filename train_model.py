@@ -57,7 +57,7 @@ def run_experiment(config, save_dir='experiments', push_to_git=False):
     config_dest = os.path.join(save_dir, base_name + "_config.py")
 
     # Save model
-    torch.save(pinn, model_path)
+    torch.save(pinn.model.state_dict(), model_path)
 
     # Save summary
     summary = {
