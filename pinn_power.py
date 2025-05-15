@@ -94,7 +94,7 @@ class PowerMethodPINN:
         temporal_loss = tmp_loss.item()
         lambda_val = self.lambda_.item()
 
-        self.loss_history.append(temporal_loss)
+        self.loss_history.append((loss.item(), temporal_loss))
         self.lambda_history.append(lambda_val)
 
         if temporal_loss < self.min_loss:
@@ -147,9 +147,6 @@ class PowerMethodPINN:
         self.optimizer.step(closure)
 
         print(f"\nFinished LBFGS: Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
-
-
-    def adam_lbfgs(self):
 
 
 

@@ -1,18 +1,9 @@
 from config import CONFIG
-from init_train import train_adam_with_mlp, train_adam_with_resnet
-
-def train_selected():
-    architecture = CONFIG["architecture"]
-    if architecture == "MLP":
-        pinn = train_adam_with_mlp(CONFIG)
-    elif architecture == "ResNet":
-        pinn = train_adam_with_resnet(CONFIG)
-    else:
-        raise ValueError(f"Unsupported architecture: {architecture}")
-
-    return pinn
+from train_model import run_experiment
+import os
+import tracemalloc
+import time
 
 if __name__ == "__main__":
-    trained_pinn = train_selected()
-    print("Training completed.")
-    trained_pinn.evaluate_and_plot()
+    pinn = run_experiment(CONFIG, push_to_git=True)
+    pinn.evaluate_and_plot()

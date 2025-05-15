@@ -1,16 +1,19 @@
-import time
 import os
-import torch
-import psutil
+import time
 import json
 import tracemalloc
+import shutil
 import subprocess
+import torch
+
 from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
 
 
-def run_experiment(config, model_type='MLP', optimizer_type='adam', save_dir='experiments', push_to_git=False):
+def run_experiment(config, save_dir='experiments', push_to_git=False):
     os.makedirs(save_dir, exist_ok=True)
+    model_type = config["architecture"]
+    optimizer_type = config["optimizer"]
 
     # Input dimension depending on periodic setting
     input_dim = config["dimension"] * (2 * config.get("pbc_k", 1) if config.get("periodic", False) else 1)
@@ -37,6 +40,9 @@ def run_experiment(config, model_type='MLP', optimizer_type='adam', save_dir='ex
         pinn.optimize_adam()
     elif optimizer_type.lower() == 'lbfgs':
         pinn.optimize_lbfgs()
+    elif optimizer_type.lower() == 'adam_lbfgs':
+        pinn.optimize_adam()
+        pinn.optimize_lbfgs()
     else:
         raise ValueError(f"Unknown optimizer: {optimizer_type}")
 
@@ -44,12 +50,16 @@ def run_experiment(config, model_type='MLP', optimizer_type='adam', save_dir='ex
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
+    # Filenames
+    base_name = f"{model_type.lower()}_{optimizer_type.lower()}_{config['depth']}_{config['width']}"
+    model_path = os.path.join(save_dir, base_name + ".pt")
+    summary_path = os.path.join(save_dir, base_name + "_summary.json")
+    config_dest = os.path.join(save_dir, base_name + "_config.py")
+
     # Save model
-    model_filename = f"{model_type.lower()}_{optimizer_type.lower()}.pt"
-    model_path = os.path.join(save_dir, model_filename)
     torch.save(pinn, model_path)
 
-    # Save summary as JSON
+    # Save summary
     summary = {
         "model_type": model_type,
         "optimizer": optimizer_type,
@@ -65,15 +75,19 @@ def run_experiment(config, model_type='MLP', optimizer_type='adam', save_dir='ex
         "device": str(pinn.device)
     }
 
-    summary_path = os.path.join(save_dir, f"{model_type.lower()}_{optimizer_type.lower()}_summary.json")
+
     with open(summary_path, "w") as f:
         json.dump(summary, f, indent=4)
 
-    print(f" {model_type} + {optimizer_type} finished in {elapsed:.2f}s | λ = {pinn.best_lambda:.6f}")
+    # Copy config.py used in training
+    config_source = "config.py"
+    shutil.copy(config_source, config_dest)
 
-    # Optional GitHub upload
+    # Optional GitHub push
     if push_to_git:
         subprocess.run(["git", "add", save_dir])
         subprocess.run(["git", "commit", "-m", f"Add results for {model_type} + {optimizer_type}"])
         subprocess.run(["git", "push"])
+
+    print(f" {model_type} + {optimizer_type} finished in {elapsed:.2f}s | λ = {pinn.best_lambda:.6f}")
     return pinn

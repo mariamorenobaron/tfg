@@ -6,6 +6,8 @@ from pinn_power import PowerMethodPINN
 from config import CONFIG
 torch.set_default_dtype(torch.float64)  
 
+# CURRENTLY NOT USED
+
 def train_adam_with_mlp(config):
     input_dim = config["dimension"] * (2 * config["pbc_k"] if config["periodic"] else 1)
     config["input_dim"] = input_dim
