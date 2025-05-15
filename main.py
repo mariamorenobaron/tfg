@@ -3,7 +3,6 @@ from init_train import train_adam_with_mlp, train_adam_with_resnet
 
 def train_selected():
     architecture = CONFIG["architecture"]
-
     if architecture == "MLP":
         pinn = train_adam_with_mlp(CONFIG)
     elif architecture == "ResNet":

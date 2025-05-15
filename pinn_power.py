@@ -1,5 +1,6 @@
 import torch
 import numpy as np
+import os
 from utils import sample_lhs, compute_laplacian, periodic_transform, plot_eigenfunction
 
 torch.set_default_dtype(torch.float64)
@@ -18,6 +19,7 @@ class PowerMethodPINN:
         self.u = self.u / torch.norm(self.u)
         self.lambda_ = torch.tensor(1.0, dtype=torch.float64, device=self.device)
 
+        self.fixed_min_loss = config["fixed_min_loss"]
         self.min_loss = float("inf")
         self.loss = None
         self.best_lambda = None
@@ -71,10 +73,7 @@ class PowerMethodPINN:
         # u_prev = N(x)
         u_prev = self.net_u(self.x_train)
 
-        #u_prev = u_prev / torch.norm(u_prev, p=2)
-
         Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
-
 
         mse_loss_fn = torch.nn.MSELoss(reduction='mean')
 
@@ -84,8 +83,7 @@ class PowerMethodPINN:
             u_new = Lu / torch.norm(Lu, p=2)  # L2 normalization
         self.u = u_new
 
-        loss_PM = mse_loss_fn(u_prev, u_new)
-        loss = loss_PM
+        loss = mse_loss_fn(u_prev, u_new)
 
         loss.backward()
 
@@ -93,19 +91,19 @@ class PowerMethodPINN:
         denominator = torch.sum(u_prev ** 2) + 1e-10
         self.lambda_ = numerator / denominator
 
-        loss_val = tmp_loss.item()
+        temporal_loss = tmp_loss.item()
         lambda_val = self.lambda_.item()
 
-        self.loss_history.append(loss_val)
+        self.loss_history.append(temporal_loss)
         self.lambda_history.append(lambda_val)
 
-        if loss_val < self.min_loss:
-            self.min_loss = loss_val
+        if temporal_loss < self.min_loss:
+            self.min_loss = temporal_loss
             self.loss = loss
             self.best_lambda = lambda_val
             self.best_model_state = self.model.state_dict()
 
-        return loss, loss_val, lambda_val
+        return loss, temporal_loss, lambda_val
 
     def optimize_adam(self):
         self.optimizer = torch.optim.Adam(
@@ -122,18 +120,38 @@ class PowerMethodPINN:
         for it in range(self.config["adam_steps"]):
             loss, loss_val, lambda_val = self.optimize_one_epoch()
             self.optimizer.step()
-
             if it % 1000 == 0 or it == self.config["adam_steps"] - 1:
-                print(f"[{it:05d}] Loss val = {loss_val:.4e} | λ_est = {lambda_val:.8f} | λ_true = {self.config['lambda_true']:.8f} Loss = {loss:.4e}")
+                print(f"[{it:05d}] Loss lambda = {loss_val:.4e} | λ_est = {lambda_val:.8f} | λ_true = {self.config['lambda_true']:.8f} Loss = {loss:.4e}")
 
-        if self.checkpoint_path and self.best_model_state:
-            torch.save({
-                "model_state_dict": self.best_model_state,
-                "lambda": self.best_lambda,
-                "loss": self.min_loss
-            }, self.checkpoint_path)
-            print(f"\n Model saved at: {self.checkpoint_path}")
-            print(f" Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
+        print(f" Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
+
+    def optimize_lbfgs(self):
+        self.optimizer = torch.optim.LBFGS(
+            self.model.parameters(),
+            max_iter=self.config["lbfgs_steps"],
+            tolerance_change=1e-10,
+            tolerance_grad=1e-10,
+            history_size=100,
+            line_search_fn=None
+        )
+        self.optimizer_name = 'LBFGS'
+        print("Starting training with LBFGS.\n")
+
+        def closure():
+            self.optimizer.zero_grad()
+            loss, loss_val, lambda_val = self.optimize_one_epoch()
+            loss.backward()
+            return loss
+
+        # This will internally call the closure multiple times
+        self.optimizer.step(closure)
+
+        print(f"\nFinished LBFGS: Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
+
+
+    def adam_lbfgs(self):
+
+
 
     def evaluate_errors_and_plot(self, x_eval, u_pred, u_true):
         u_pred = u_pred / np.linalg.norm(u_pred)
@@ -152,30 +170,11 @@ class PowerMethodPINN:
         rel_error_lambda = lambda_error / lambda_true
         print(f"Relative Error (λ): {rel_error_lambda:.4e}")
 
+
     def evaluate_and_plot(self):
         """Evaluate and plot the eigenfunction."""
         if self.config["dimension"] != 1:
-            print("Evaluating error only for non-1D problems.")
-
-            x_eval = torch.linspace(
-                self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
-            ).view(-1, 1).to(self.device)
-
-            with torch.no_grad():
-                x_input = self.apply_input_transform(x_eval)
-                u_raw = self.model(x_input)
-                if not self.config.get("periodic", False):
-                    u_pred = self.apply_boundary_condition(x_eval, u_raw)
-                else:
-                    u_pred = u_raw
-
-            x_np = x_eval.detach().cpu().numpy()
-            u_pred = u_pred.detach().cpu().numpy()
-
-            u_true = self.config["exact_u"](x_np)
-
-            self.evaluate_errors_and_plot(x_np, u_pred, u_true)
-
+            print("Evaluation and plotting are only implemented for 1D problems.")
             return
 
         x_eval = torch.linspace(
@@ -183,20 +182,21 @@ class PowerMethodPINN:
         ).view(-1, 1).to(self.device)
         x_eval.requires_grad_(True)
 
+        # Model prediction
         with torch.no_grad():
             x_input = self.apply_input_transform(x_eval)
             u_raw = self.model(x_input)
-            if not self.config.get("periodic", False):
-                u_pred = self.apply_boundary_condition(x_eval, u_raw)
-            else:
-                u_pred = u_raw
+            u_pred = self.apply_boundary_condition(x_eval, u_raw) if not self.config.get("periodic", False) else u_raw
 
+        # Convert to numpy
         x_np = x_eval.detach().cpu().numpy()
         u_pred = u_pred.detach().cpu().numpy()
 
+        # Compute true solution
         u_true = self.config["exact_u"](x_np)
         u_true = u_true / np.linalg.norm(u_true)
 
+        # Plot and evaluate
         plot_eigenfunction(
             x_np, u_pred, u_true,
             title="Predicted vs True Eigenfunction",
@@ -204,6 +204,7 @@ class PowerMethodPINN:
         )
 
         self.evaluate_errors_and_plot(x_np, u_pred, u_true)
+
 
 
 
