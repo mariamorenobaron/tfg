@@ -150,57 +150,64 @@ class PowerMethodPINN:
 
 
 
-    def evaluate_errors_and_plot(self, x_eval, u_pred, u_true):
-        u_pred = u_pred / np.linalg.norm(u_pred)
-
-        l2_error = np.linalg.norm(u_pred - u_true) / np.sqrt(u_pred.shape[0])
-        print(f"L2 Error: {l2_error:.4e}")
-
-        rel_error_u = np.linalg.norm(u_pred - u_true) / np.linalg.norm(u_true)
-        print(f"Relative Error (u): {rel_error_u:.4e}")
-
-        lambda_pred = self.best_lambda
-        lambda_true = self.config["lambda_true"]
-        lambda_error = np.abs(lambda_pred - lambda_true)
-        print(f"Lambda Error: {lambda_error:.4e}")
-
-        rel_error_lambda = lambda_error / lambda_true
-        print(f"Relative Error (λ): {rel_error_lambda:.4e}")
-
 
     def evaluate_and_plot(self):
-        """Evaluate and plot the eigenfunction."""
+        """Evaluate the model and compute errors. Plots for 1D problems."""
         if self.config["dimension"] != 1:
             print("Evaluation and plotting are only implemented for 1D problems.")
             return
 
+        # 1. Generate evaluation points
         x_eval = torch.linspace(
             self.config["domain_lb"][0], self.config["domain_ub"][0], 1000
         ).view(-1, 1).to(self.device)
         x_eval.requires_grad_(True)
 
-        # Model prediction
+        # 2. Predict u(x)
         with torch.no_grad():
             x_input = self.apply_input_transform(x_eval)
             u_raw = self.model(x_input)
             u_pred = self.apply_boundary_condition(x_eval, u_raw) if not self.config.get("periodic", False) else u_raw
 
-        # Convert to numpy
+        # 3. Compute true eigenfunction
         x_np = x_eval.detach().cpu().numpy()
-        u_pred = u_pred.detach().cpu().numpy()
-
-        # Compute true solution
+        u_pred_np = u_pred.detach().cpu().numpy()
         u_true = self.config["exact_u"](x_np)
-        u_true = u_true / np.linalg.norm(u_true)
 
-        # Plot and evaluate
+        # 4. Normalize both
+        u_true = u_true / np.linalg.norm(u_true)
+        u_pred_np = u_pred_np / np.linalg.norm(u_pred_np)
+
+        # 5. Flip prediction if needed (to match sign)
+        sign = np.sign(np.mean(u_pred_np * u_true))
+        u_pred_np *= sign
+
+        # 6. Compute errors
+        l2_error = np.linalg.norm(u_true - u_pred_np) / np.sqrt(u_pred_np.shape[0])
+        linf_error = np.linalg.norm(u_true - u_pred_np, ord=np.inf)
+
+        lambda_true = self.config["lambda_true"]
+        lambda_pred = float(self.best_lambda)
+        lambda_abs_error = abs(lambda_pred - lambda_true)
+        lambda_rel_error = lambda_abs_error / abs(lambda_true)
+
+        # 7. Logging
+        print("==== Evaluation Results ====")
+        print(f"L2 Error (u):         {l2_error:.4e}")
+        print(f"L∞ Error (u):         {linf_error:.4e}")
+        print(f"λ predicted:          {lambda_pred:.8f}")
+        print(f"λ true:               {lambda_true:.8f}")
+        print(f"Absolute Error (λ):   {lambda_abs_error:.4e}")
+        print(f"Relative Error (λ):   {lambda_rel_error:.4e}")
+        print("============================")
+
+        # 8. Plot
         plot_eigenfunction(
-            x_np, u_pred, u_true,
+            x_np, u_pred_np, u_true,
             title="Predicted vs True Eigenfunction",
             save_path="eigenfunction_plot.png"
         )
 
-        self.evaluate_errors_and_plot(x_np, u_pred, u_true)
 
 
 
