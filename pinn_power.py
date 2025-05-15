@@ -1,3 +1,5 @@
+from datetime import time
+
 import torch
 import numpy as np
 import os
@@ -205,7 +207,7 @@ class PowerMethodPINN:
         plot_eigenfunction(
             x_np, u_pred_np, u_true,
             title="Predicted vs True Eigenfunction",
-            save_path="eigenfunction_plot.png"
+            save_path=f"eigenfunction_plot.png"
         )
 
 

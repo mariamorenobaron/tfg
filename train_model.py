@@ -1,17 +1,19 @@
 import os
 import time
 import json
-import tracemalloc
 import shutil
-import subprocess
 import torch
+import tracemalloc
+import subprocess
+import psutil
 
 from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
 
 
-def run_experiment(config, save_dir='experiments', push_to_git=False):
+def run_experiment(config, save_dir='tfg/experiments', push_to_git=False):
     os.makedirs(save_dir, exist_ok=True)
+
     model_type = config["architecture"]
     optimizer_type = config["optimizer"]
 
@@ -31,9 +33,13 @@ def run_experiment(config, save_dir='experiments', push_to_git=False):
     # Initialize PINN
     pinn = PowerMethodPINN(model.double(), config)
 
-    # Monitor memory & time
+    # Monitor CPU memory & time
     tracemalloc.start()
     start_time = time.time()
+
+    # GPU memory stats reset
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
 
     # Train
     if optimizer_type.lower() == 'adam':
@@ -50,16 +56,22 @@ def run_experiment(config, save_dir='experiments', push_to_git=False):
     current, peak = tracemalloc.get_traced_memory()
     tracemalloc.stop()
 
+    # GPU memory usage (MB)
+    if torch.cuda.is_available():
+        peak_gpu_memory = torch.cuda.max_memory_allocated() / 1024 / 1024
+    else:
+        peak_gpu_memory = 0.0
+
     # Filenames
     base_name = f"{model_type.lower()}_{optimizer_type.lower()}_{config['depth']}_{config['width']}"
     model_path = os.path.join(save_dir, base_name + ".pt")
     summary_path = os.path.join(save_dir, base_name + "_summary.json")
     config_dest = os.path.join(save_dir, base_name + "_config.py")
 
-    # Save model
+    # Save model weights
     torch.save(pinn.model.state_dict(), model_path)
 
-    # Save summary
+    # Save training summary
     summary = {
         "model_type": model_type,
         "optimizer": optimizer_type,
@@ -72,22 +84,28 @@ def run_experiment(config, save_dir='experiments', push_to_git=False):
         "min_loss": float(pinn.min_loss),
         "time_seconds": elapsed,
         "peak_memory_MB": peak / 1024 / 1024,
+        "peak_gpu_memory_MB": peak_gpu_memory,
         "device": str(pinn.device)
     }
-
 
     with open(summary_path, "w") as f:
         json.dump(summary, f, indent=4)
 
-    # Copy config.py used in training
+    # Copy config.py
     config_source = "config.py"
-    shutil.copy(config_source, config_dest)
+    if os.path.exists(config_source):
+        shutil.copy(config_source, config_dest)
+    else:
+        print("⚠ Warning: config.py not found, config not copied.")
 
-    # Optional GitHub push
+    # Push to GitHub if requested
     if push_to_git:
         subprocess.run(["git", "add", save_dir])
         subprocess.run(["git", "commit", "-m", f"Add results for {model_type} + {optimizer_type}"])
         subprocess.run(["git", "push"])
 
-    print(f" {model_type} + {optimizer_type} finished in {elapsed:.2f}s | λ = {pinn.best_lambda:.6f}")
+    print(f"\n {model_type} + {optimizer_type} finished in {elapsed:.2f}s")
+    print(f"   λ_est = {pinn.best_lambda:.6f} | Loss = {pinn.min_loss:.4e}")
+    print(f"   Peak RAM: {peak / 1024 / 1024:.2f} MB | Peak GPU: {peak_gpu_memory:.2f} MB")
+
     return pinn
