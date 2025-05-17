@@ -1,0 +1,15 @@
+{
+    "model_type": "MLP",
+    "optimizer": "Adam",
+    "depth": 4,
+    "width": 20,
+    "adam_steps": 50000,
+    "lbfgs_steps": 0,
+    "lambda_true": 90.13039559891064,
+    "lambda_pred": 90.13039405299838,
+    "min_loss": 1.7623405951157125e-15,
+    "time_seconds": 466.0352568626404,
+    "peak_memory_MB": 76.21119403839111,
+    "peak_gpu_memory_MB": 130.732421875,
+    "device": "cuda"
+}
