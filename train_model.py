@@ -22,6 +22,7 @@ def run_experiment(config, save_dir='tfg/experiments', push_to_git=False):
     config["input_dim"] = input_dim
 
     # Build model
+    print(f"Building model... {model_type} with {optimizer_type}")
     if model_type.lower() == 'mlp':
         layers = [input_dim] + [config["width"]] * config["depth"] + [1]
         model = MLP(layers)
