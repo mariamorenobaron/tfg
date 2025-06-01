@@ -218,9 +218,6 @@ class PowerMethodPINN:
                 save_path="eigenfunction_plot.png"
             )
 
-        # Always plot density even for high-d
-        self.plot_density(u_true_np, u_pred_np)
-
 
 
 
