@@ -11,7 +11,7 @@ from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
 
 
-def run_experiment(config, save_dir='tfg/experiments', push_to_git=False):
+def run_experiment(config, save_dir='experiments', push_to_git=False):
     os.makedirs(save_dir, exist_ok=True)
 
     model_type = config["architecture"]
