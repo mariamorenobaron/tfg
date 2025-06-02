@@ -127,6 +127,35 @@ class PowerMethodPINN:
 
         print(f" Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
 
+    def compute_loss(self):
+        u_prev = self.net_u(self.x_train)
+        Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
+        mse_loss_fn = torch.nn.MSELoss(reduction='mean')
+        loss = mse_loss_fn(Lu, self.lambda_ * self.u)
+        return loss
+
+    def update_state(self):
+        with torch.no_grad():
+            u_prev = self.net_u(self.x_train)
+            Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
+
+            # Update u
+            self.u = Lu / (torch.norm(Lu) + 1e-10)
+
+            # Update λ
+            numerator = torch.sum(Lu * u_prev)
+            denominator = torch.sum(u_prev ** 2) + 1e-10
+            self.lambda_ = numerator / denominator
+
+            # Save best lambda if better
+            lambda_val = self.lambda_.item()
+            loss_val = self.compute_loss().item()
+
+            if loss_val < self.min_loss:
+                self.min_loss = loss_val
+                self.best_lambda = lambda_val
+                self.best_model_state = self.model.state_dict()
+
     def optimize_lbfgs(self):
         self.optimizer = torch.optim.LBFGS(
             self.model.parameters(),
@@ -137,16 +166,20 @@ class PowerMethodPINN:
             line_search_fn=None
         )
         self.optimizer_name = 'LBFGS'
-        print("Starting training with LBFGS.\n")
+        print("Starting training with LBFGS...\n")
 
+        # closure just computes loss and backward
         def closure():
             self.optimizer.zero_grad()
-            loss, loss_val, lambda_val = self.optimize_one_epoch()
+            loss = self.compute_loss()  # no state updates here
             loss.backward()
             return loss
 
-        # This will internally call the closure multiple times
         self.optimizer.step(closure)
+
+        # After LBFGS finishes, do one final state update:
+        with torch.no_grad():
+            self.update_state()
 
         print(f"\nFinished LBFGS: Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
 
