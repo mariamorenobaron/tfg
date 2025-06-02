@@ -150,73 +150,87 @@ class PowerMethodPINN:
 
         print(f"\nFinished LBFGS: Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
 
-    def evaluate_and_plot(self):
-        """Evaluate the model and compute errors (1D and high-d)."""
+    def evaluate_and_plot(self, n_eval_points=10000):
+        """
+        Full evaluation + plotting. Works for 1D (plots) and higher dimensions (no plot).
+        """
 
-        d = self.config["dimension"]
+        print("===== Starting Evaluation =====")
 
-        # Generate evaluation samples
-        N_eval = 100000 if d > 1 else 1000
-        if d == 1:
-            x_eval = torch.linspace(self.config["domain_lb"][0], self.config["domain_ub"][0], N_eval).view(-1, 1)
+        domain_lb = np.array(self.config["domain_lb"])
+        domain_ub = np.array(self.config["domain_ub"])
+        dim = self.config["dimension"]
+
+        # 1️⃣ Generate evaluation points
+        if dim == 1:
+            x_eval = np.linspace(domain_lb[0], domain_ub[0], n_eval_points).reshape(-1, 1)
         else:
-            from pyDOE import lhs  # same as paper
-            lb = np.array(self.config["domain_lb"])
-            ub = np.array(self.config["domain_ub"])
-            x_np = lb + (ub - lb) * lhs(d, N_eval)
-            x_eval = torch.tensor(x_np, dtype=torch.float64)
+            from pyDOE import lhs
+            samples = lhs(dim, n_eval_points)
+            x_eval = domain_lb + (domain_ub - domain_lb) * samples
 
-        x_eval = x_eval.to(self.device).requires_grad_(True)
+        x_eval_tensor = torch.tensor(x_eval, dtype=torch.float64, device=self.device, requires_grad=False)
 
-        # Predict u(x)
+        # 2️⃣ Predict u(x)
         with torch.no_grad():
-            x_input = self.apply_input_transform(x_eval)
-            u_raw = self.model(x_input)
-            u_pred = self.apply_boundary_condition(x_eval, u_raw) if not self.config.get("periodic", False) else u_raw
+            x_input = self.apply_input_transform(x_eval_tensor)
+            x_input_shifted = self.coor_shift(x_input, self.lb, self.ub)
+            u_raw = self.model(x_input_shifted)
 
-        x_np = x_eval.detach().cpu().numpy()
-        u_pred_np = u_pred.detach().cpu().numpy()
-        u_true_np = self.config["exact_u"](x_np)
+            if not self.config.get("periodic", False):
+                u_pred_tensor = self.apply_boundary_condition(x_eval_tensor, u_raw)
+            else:
+                u_pred_tensor = u_raw
 
-        # Normalize as paper
-        u_pred_np = u_pred_np / np.linalg.norm(u_pred_np)
-        u_true_np = u_true_np / np.linalg.norm(u_true_np)
+        u_pred = u_pred_tensor.cpu().numpy()
 
-        # Sign alignment
-        sign = np.sign(np.mean(u_pred_np * u_true_np))
-        u_pred_np *= sign
+        # 3️⃣ True solution
+        u_true = self.config["exact_u"](x_eval)
 
-        # Rescale with sqrt(N)
-        N = u_pred_np.shape[0]
-        u_pred_np *= np.sqrt(N)
-        u_true_np *= np.sqrt(N)
+        # 4️⃣ Normalize both (as paper)
+        u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(u_pred.shape[0])
+        u_true = u_true / np.linalg.norm(u_true) * np.sqrt(u_true.shape[0])
 
-        # Compute errors
-        L_inf_u = np.max(np.abs(u_true_np - u_pred_np))
-        L2_u = np.sqrt(np.sum((u_true_np - u_pred_np) ** 2) / N)
+        # 5️⃣ Align signs
+        sign = np.sign(np.mean(u_pred * u_true))
+        u_pred *= sign
+
+        # 6️⃣ Compute errors
+        L2_error_u = np.sqrt(np.sum((u_true - u_pred) ** 2) / u_pred.shape[0])
+        Linf_error_u = np.max(np.abs(u_true - u_pred))
 
         lambda_true = self.config["lambda_true"]
         lambda_pred = float(self.best_lambda)
-        abs_lambda = abs(lambda_pred - lambda_true)
-        rel_lambda = abs_lambda / abs(lambda_true)
+        lambda_abs_error = abs(lambda_pred - lambda_true)
+        lambda_rel_error = lambda_abs_error / abs(lambda_true)
 
-        # Log results
-        print("==== Evaluation Results ====")
-        print(f"L2 Error (u):         {L2_u:.4e}")
-        print(f"L∞ Error (u):         {L_inf_u:.4e}")
+        # 7️⃣ Print results
+        print(f"L2 Error (u):         {L2_error_u:.4e}")
+        print(f"L∞ Error (u):         {Linf_error_u:.4e}")
         print(f"λ predicted:          {lambda_pred:.8f}")
         print(f"λ true:               {lambda_true:.8f}")
-        print(f"Absolute Error (λ):   {abs_lambda:.4e}")
-        print(f"Relative Error (λ):   {rel_lambda:.4e}")
-        print("============================")
+        print(f"Absolute Error (λ):   {lambda_abs_error:.4e}")
+        print(f"Relative Error (λ):   {lambda_rel_error:.4e}")
+        print("===============================")
 
-        # Plot only if d=1
-        if d == 1:
-            plot_eigenfunction(
-                x_np, u_pred_np, u_true_np,
-                title="Predicted vs True Eigenfunction",
-                save_path="eigenfunction_plot.png"
-            )
+        # 8️⃣ Plot only for 1D
+        if dim == 1:
+            import matplotlib.pyplot as plt
+            plt.figure(figsize=(8, 5))
+            plt.plot(x_eval, u_true, label="u_true", linewidth=2)
+            plt.plot(x_eval, u_pred, '--', label="u_pred", linewidth=2)
+            plt.legend()
+            plt.title("Eigenfunction: True vs Predicted")
+            plt.savefig("eigenfunction_plot.png")
+            plt.close()
+
+        return {
+            "L2_u": L2_error_u,
+            "Linf_u": Linf_error_u,
+            "lambda_abs_error": lambda_abs_error,
+            "lambda_rel_error": lambda_rel_error,
+        }
+
 
 
 

@@ -30,7 +30,7 @@ def evaluate_model(folder):
     # Instanciar PINN y evaluar
     pinn = PowerMethodPINN(model, config)
     start = time.time()
-    x_eval = pinn.sample_points(5000).detach().cpu().numpy()
+    x_eval = pinn.sample_points(70000).detach().cpu().numpy()
     x_tensor = torch.tensor(x_eval, dtype=torch.float32).to(pinn.device)
     x_input = pinn.apply_input_transform(x_tensor)
 
