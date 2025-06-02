@@ -8,8 +8,8 @@ CONFIG = {
     "domain_ub": np.ones(d),
     "M": 100,
 
-    "architecture": "ResNet",
-    "optimizer": "Adam",
+    "architecture": "MLP",
+    "optimizer": "adam_labfgs",
     "depth": 4,
     "width": 20,
 
