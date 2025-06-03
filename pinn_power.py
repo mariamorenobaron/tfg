@@ -128,28 +128,28 @@ class PowerMethodPINN:
         print(f" Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
 
     def compute_loss(self):
+        """Compute pure loss for LBFGS closure, no state updates."""
         u_prev = self.net_u(self.x_train)
         Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
         mse_loss_fn = torch.nn.MSELoss(reduction='mean')
-        loss = mse_loss_fn(Lu, self.lambda_ * self.u)
-        return loss
+        return mse_loss_fn(Lu, self.lambda_ * self.u)
 
-    def update_state(self):
+    def update_state_after_lbfgs(self):
+        """Update u, lambda after LBFGS optimization step."""
         with torch.no_grad():
             u_prev = self.net_u(self.x_train)
             Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
 
-            # Update u
+            # Power method update
             self.u = Lu / (torch.norm(Lu) + 1e-10)
 
-            # Update λ
             numerator = torch.sum(Lu * u_prev)
             denominator = torch.sum(u_prev ** 2) + 1e-10
             self.lambda_ = numerator / denominator
 
-            # Save best lambda if better
-            lambda_val = self.lambda_.item()
+            # Save best model state
             loss_val = self.compute_loss().item()
+            lambda_val = self.lambda_.item()
 
             if loss_val < self.min_loss:
                 self.min_loss = loss_val
@@ -168,18 +168,14 @@ class PowerMethodPINN:
         self.optimizer_name = 'LBFGS'
         print("Starting training with LBFGS...\n")
 
-        # closure just computes loss and backward
         def closure():
             self.optimizer.zero_grad()
-            loss = self.compute_loss()  # no state updates here
+            loss = self.compute_loss()
             loss.backward()
             return loss
 
         self.optimizer.step(closure)
-
-        # After LBFGS finishes, do one final state update:
-        with torch.no_grad():
-            self.update_state()
+        self.update_state_after_lbfgs()
 
         print(f"\nFinished LBFGS: Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
 

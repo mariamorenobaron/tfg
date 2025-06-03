@@ -5,5 +5,5 @@ import tracemalloc
 import time
 
 if __name__ == "__main__":
-    pinn = run_experiment(CONFIG, push_to_git=True)
+    pinn = run_experiment(CONFIG)
     pinn.evaluate_and_plot()
