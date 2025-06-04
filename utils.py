@@ -8,11 +8,18 @@ from pyDOE import lhs
 import matplotlib.pyplot as plt
 torch.set_default_dtype(torch.float64)  
 
+
+
+def coor_shift(X, lb, ub):
+    X_shift = 2.0 * (X - lb) / (ub - lb) - 1.0
+    return X_shift
+
+
 def sample_lhs(lb, ub, N, d):
     return  lb + (ub-lb)*lhs(d, N)
 
 def compute_laplacian(u, x):
-    assert u.dtype == torch.float64 and x.dtype == torch.float64, "Usa float64"
+    assert u.dtype == torch.float64 and x.dtype == torch.float64, "Use of float64"
     device = u.device
 
     lap = torch.zeros_like(u)
@@ -75,16 +82,3 @@ def load_model(model_class_dict, folder="saved_model"):
     model.load_state_dict(torch.load(os.path.join(folder, "model_weights.pt")))
     return model, arch_config
 
-def plot_eigenfunction(x, u_pred, u_true=None, title="Autofunción estimada vs exacta", save_path=None):
-    plt.figure(figsize=(8, 4))
-    plt.plot(x, u_pred, label="u_pred (estimada)", linewidth=2)
-    if u_true is not None:
-        plt.plot(x, u_true, label="u_true (exacta)", linestyle="--", linewidth=2)
-    plt.xlabel("x")
-    plt.ylabel("u(x)")
-    plt.title(title)
-    plt.legend()
-    plt.grid(True)
-    if save_path:
-        plt.savefig(save_path)
-    plt.show()

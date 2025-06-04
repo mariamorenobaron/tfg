@@ -3,7 +3,7 @@ from datetime import time
 import torch
 import numpy as np
 import os
-from utils import sample_lhs, compute_laplacian, periodic_transform, plot_eigenfunction
+from utils import sample_lhs, compute_laplacian, periodic_transform,coor_shift
 
 torch.set_default_dtype(torch.float64)
 
@@ -37,11 +37,6 @@ class PowerMethodPINN:
         self.ub = torch.tensor(config["domain_ub"], dtype=torch.float64).to(self.device)
         self.d = config["dimension"]
 
-
-    def coor_shift(self, X, lb, ub):
-        X_shift = 2.0 * (X - lb) / (ub - lb) - 1.0
-        return X_shift
-
     def apply_input_transform(self, x):
         if self.config.get("periodic", False):
             return periodic_transform(x, k=self.config.get("pbc_k", 1), periods=self.config.get("periods", None))
@@ -59,7 +54,7 @@ class PowerMethodPINN:
     def net_u(self, x):
         x_input = self.apply_input_transform(x)
         # Apply coordinate shift before feeding into the model
-        x_input = self.coor_shift(x_input, self.lb, self.ub)
+        x_input = coor_shift(x_input, self.lb, self.ub)
         u_pred = self.model(x_input)
         if not self.config.get("periodic", False):
             u_pred = self.apply_boundary_condition(x, u_pred)
@@ -203,7 +198,7 @@ class PowerMethodPINN:
         # 2️⃣ Predict u(x)
         with torch.no_grad():
             x_input = self.apply_input_transform(x_eval_tensor)
-            x_input_shifted = self.coor_shift(x_input, self.lb, self.ub)
+            x_input_shifted = coor_shift(x_input, self.lb, self.ub)
             u_raw = self.model(x_input_shifted)
 
             if not self.config.get("periodic", False):
@@ -213,10 +208,8 @@ class PowerMethodPINN:
 
         u_pred = u_pred_tensor.cpu().numpy()
 
-        # 3️⃣ True solution
         u_true = self.config["exact_u"](x_eval)
 
-        # 4️⃣ Normalize both (as paper)
         u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(u_pred.shape[0])
         u_true = u_true / np.linalg.norm(u_true) * np.sqrt(u_true.shape[0])
 
