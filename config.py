@@ -1,6 +1,6 @@
 import numpy as np
 
-d = 2
+d = 1
 
 CONFIG = {
     "dimension": d,
@@ -10,7 +10,7 @@ CONFIG = {
 
     "architecture": "MLP",
     "optimizer": "adam",
-    "method": "pmnn",                       # "pmnn" or "ipinn"
+    "method": "ipmnn",                       # "pmnn" or "ipmnn"
     "depth": 4,
     "width": 20,
     "push_to_git" : True,
@@ -18,10 +18,10 @@ CONFIG = {
     "adam_steps": 50000,
     "adam_lr": 1e-3,
     "lbfgs_steps": 0,
-    "n_train": 20000,
+    "n_train": 10000,
     "fixed_min_loss": None,
 
-    "lambda_true": 100 - d * np.pi**2,
+    "lambda_true": d * np.pi**2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
 
     "periodic": False,
