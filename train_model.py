@@ -10,8 +10,11 @@ from pinn_power import PowerMethodPINN
 from pinn_invpower import InversePowerMethodPINN  # Your IPMNN class
 
 def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
-    os.makedirs(save_dir, exist_ok=True)
-    config["save_dir"] = save_dir
+    # 🧱 Build unique name for this experiment
+    base_name = f"{config['method']}_{config['architecture']}_{config['dimension']}D_d{config['depth']}_w{config['width']}"
+    run_dir = os.path.join(save_dir, base_name)
+    os.makedirs(run_dir, exist_ok=True)
+    config["save_dir"] = run_dir  # Update for saving later
 
     # Define input dimension based on periodicity
     input_dim = config["dimension"] * (2 * config.get("pbc_k", 1) if config.get("periodic", False) else 1)
@@ -57,7 +60,7 @@ def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
     peak_gpu = torch.cuda.max_memory_allocated() / 1024 / 1024 if torch.cuda.is_available() else 0.0
 
     # Save model
-    torch.save(pinn.model.state_dict(), os.path.join(save_dir, "model.pt"))
+    torch.save(pinn.model.state_dict(), os.path.join(run_dir, "model.pt"))
 
     # Save training summary
     summary = {
@@ -75,7 +78,7 @@ def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
         "peak_gpu_MB": peak_gpu,
         "device": str(pinn.device)
     }
-    with open(os.path.join(save_dir, "summary.json"), "w") as f:
+    with open(os.path.join(run_dir, "summary.json"), "w") as f:
         json.dump(summary, f, indent=4)
 
     # Save training curve
@@ -84,11 +87,10 @@ def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
     # Optional GitHub push
     if config.get("push_to_git", False):
         try:
-            subprocess.run(["git", "add", save_dir], check=True)
-            commit_msg = f"Add results for {config['architecture']} + {config['method']} in {save_dir}"
+            subprocess.run(["git", "add", run_dir], check=True)
+            commit_msg = f"Add results for {base_name}"
             subprocess.run(["git", "commit", "-m", commit_msg], check=True)
             subprocess.run(["git", "push"], check=True)
-            print("✅ Results pushed to GitHub.")
         except subprocess.CalledProcessError as e:
             print(f"⚠ Git push failed: {e}")
 
