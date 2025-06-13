@@ -13,6 +13,7 @@ CONFIG = {
     "method": "pmnn", # "pmnn" or "ipinn"
     "depth": 4,
     "width": 20,
+    "push_to_git" : True,
 
     "adam_steps": 50000,
     "adam_lr": 1e-3,

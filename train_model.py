@@ -1,20 +1,19 @@
 import os
 import time
 import json
-import shutil
 import torch
 import tracemalloc
 import subprocess
-import psutil
 
 from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
-from pinn_invpower import InversePowerMethodPINN  # 👈 This should be your IPMNN class
+from pinn_invpower import InversePowerMethodPINN  # Your IPMNN class
 
 def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
     os.makedirs(save_dir, exist_ok=True)
     config["save_dir"] = save_dir
 
+    # Define input dimension based on periodicity
     input_dim = config["dimension"] * (2 * config.get("pbc_k", 1) if config.get("periodic", False) else 1)
     config["input_dim"] = input_dim
 
@@ -36,7 +35,7 @@ def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
     else:
         raise ValueError("Unknown method: choose 'pmnn' or 'ipmnn'.")
 
-    # Train
+    # Start training
     tracemalloc.start()
     t0 = time.time()
     if torch.cuda.is_available():
@@ -49,6 +48,8 @@ def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
     elif config["optimizer"].lower() == "adam_lbfgs":
         pinn.optimize_adam()
         pinn.optimize_lbfgs()
+    else:
+        raise ValueError("Unknown optimizer.")
 
     elapsed = time.time() - t0
     current, peak = tracemalloc.get_traced_memory()
@@ -79,5 +80,16 @@ def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
 
     # Save training curve
     pinn.save_training_curve()
+
+    # Optional GitHub push
+    if config.get("push_to_git", False):
+        try:
+            subprocess.run(["git", "add", save_dir], check=True)
+            commit_msg = f"Add results for {config['architecture']} + {config['method']} in {save_dir}"
+            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
+            subprocess.run(["git", "push"], check=True)
+            print("✅ Results pushed to GitHub.")
+        except subprocess.CalledProcessError as e:
+            print(f"⚠ Git push failed: {e}")
 
     return pinn
