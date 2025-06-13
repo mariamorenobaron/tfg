@@ -11,11 +11,9 @@ from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
 from pinn_invpower import InversePowerMethodPINN  # 👈 This should be your IPMNN class
 
-def run_experiment(config, save_dir='numerical_experiments'):
-    run_name = config["run_name"]
-    run_dir = os.path.join(save_dir, run_name)
-    os.makedirs(run_dir, exist_ok=True)
-    config["save_dir"] = run_dir
+def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
+    os.makedirs(save_dir, exist_ok=True)
+    config["save_dir"] = save_dir
 
     input_dim = config["dimension"] * (2 * config.get("pbc_k", 1) if config.get("periodic", False) else 1)
     config["input_dim"] = input_dim

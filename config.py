@@ -9,7 +9,7 @@ CONFIG = {
     "M": 100,
 
     "architecture": "MLP",
-    "optimizer": "adam_lbfgs",
+    "optimizer": "adam",
     "method": "pmnn", # "pmnn" or "ipinn"
     "depth": 4,
     "width": 20,
