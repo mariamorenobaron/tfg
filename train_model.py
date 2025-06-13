@@ -56,7 +56,7 @@ def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
     peak_gpu = torch.cuda.max_memory_allocated() / 1024 / 1024 if torch.cuda.is_available() else 0.0
 
     # Save model
-    torch.save(pinn.model.state_dict(), os.path.join(run_dir, "model.pt"))
+    torch.save(pinn.model.state_dict(), os.path.join(save_dir, "model.pt"))
 
     # Save training summary
     summary = {
@@ -74,7 +74,7 @@ def run_experiment(config, save_dir='numerical_experiments/1_power_method'):
         "peak_gpu_MB": peak_gpu,
         "device": str(pinn.device)
     }
-    with open(os.path.join(run_dir, "summary.json"), "w") as f:
+    with open(os.path.join(save_dir, "summary.json"), "w") as f:
         json.dump(summary, f, indent=4)
 
     # Save training curve
