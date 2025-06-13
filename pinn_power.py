@@ -1,5 +1,4 @@
 from datetime import time
-
 import torch
 import numpy as np
 import os
@@ -226,7 +225,6 @@ class PowerMethodPINN:
         lambda_abs_error = abs(lambda_pred - lambda_true)
         lambda_rel_error = lambda_abs_error / abs(lambda_true)
 
-        # 7️⃣ Print results
         print(f"L2 Error (u):         {L2_error_u:.4e}")
         print(f"L∞ Error (u):         {Linf_error_u:.4e}")
         print(f"λ predicted:          {lambda_pred:.8f}")
@@ -235,7 +233,6 @@ class PowerMethodPINN:
         print(f"Relative Error (λ):   {lambda_rel_error:.4e}")
         print("===============================")
 
-        # 8️⃣ Plot only for 1D
         if dim == 1:
             import matplotlib.pyplot as plt
             plt.figure(figsize=(8, 5))

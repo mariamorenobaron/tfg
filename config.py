@@ -20,10 +20,12 @@ CONFIG = {
     "fixed_min_loss": None,
     "checkpoint_path": "model.pt",
 
+
     "lambda_true": 100 - d * np.pi**2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
 
     "periodic": False,
     "pbc_k": 1,
-    "periods": None
+    "periods": None,
+    "alpha": 0.0
 }
