@@ -10,7 +10,7 @@ CONFIG = {
 
     "architecture": "MLP",
     "optimizer": "adam",
-    "method": "pmnn", # "pmnn" or "ipinn"
+    "method": "pmnn",                       # "pmnn" or "ipinn"
     "depth": 4,
     "width": 20,
     "push_to_git" : True,
