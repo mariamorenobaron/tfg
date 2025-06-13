@@ -2,6 +2,7 @@ import torch
 import os
 import json
 import numpy as np
+from utils import sample_lhs, periodic_transform, coor_shift, compute_laplacian
 
 class PowerMethodPINN:
     def __init__(self, model, config):
