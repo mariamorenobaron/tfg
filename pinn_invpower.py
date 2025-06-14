@@ -121,3 +121,69 @@ class InversePowerMethodPINN:
         path = os.path.join(self.config["save_dir"], "training_curve.json")
         with open(path, "w") as f:
             json.dump(self.training_curve, f, indent=2)
+
+    def evaluate_and_plot(self, n_eval_points=10000):
+        """
+        Evaluación y visualización (solo imprime resultados).
+        """
+        print("===== Evaluation (IPMNN) =====")
+
+        domain_lb = np.array(self.config["domain_lb"])
+        domain_ub = np.array(self.config["domain_ub"])
+        dim = self.config["dimension"]
+
+        # 1️⃣ Puntos de evaluación
+        if dim == 1:
+            x_eval = np.linspace(domain_lb[0], domain_ub[0], n_eval_points).reshape(-1, 1)
+        else:
+            from pyDOE import lhs
+            samples = lhs(dim, n_eval_points)
+            x_eval = domain_lb + (domain_ub - domain_lb) * samples
+
+        x_eval_tensor = torch.tensor(x_eval, dtype=torch.float64, device=self.device)
+
+        # 2️⃣ Predicción u(x)
+        with torch.no_grad():
+            x_input = self.apply_input_transform(x_eval_tensor)
+            x_input_shifted = coor_shift(x_input, self.lb, self.ub)
+            u_raw = self.model(x_input_shifted)
+
+            if not self.config.get("periodic", False):
+                u_pred_tensor = self.apply_boundary_condition(x_eval_tensor, u_raw)
+            else:
+                u_pred_tensor = u_raw
+
+        u_pred = u_pred_tensor.cpu().numpy()
+        u_true = self.config["exact_u"](x_eval)
+
+        u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(u_pred.shape[0])
+        u_true = u_true / np.linalg.norm(u_true) * np.sqrt(u_true.shape[0])
+
+        sign = np.sign(np.mean(u_pred * u_true))
+        u_pred *= sign
+
+        # 3️⃣ Errores
+        L2_error_u = np.sqrt(np.mean((u_true - u_pred) ** 2))
+        Linf_error_u = np.max(np.abs(u_true - u_pred))
+
+        lambda_true = self.config["lambda_true"]
+        lambda_pred = float(self.best_lambda)
+        lambda_abs_error = abs(lambda_pred - lambda_true)
+        lambda_rel_error = lambda_abs_error / abs(lambda_true)
+
+        print(f"λ predicted:          {lambda_pred:.8f}")
+        print(f"λ true:               {lambda_true:.8f}")
+        print(f"Absolute Error (λ):   {lambda_abs_error:.4e}")
+        print(f"Relative Error (λ):   {lambda_rel_error:.4e}")
+        print(f"L2 Error (u):         {L2_error_u:.4e}")
+        print(f"L∞ Error (u):         {Linf_error_u:.4e}")
+        print("===============================")
+
+        if dim == 1:
+            import matplotlib.pyplot as plt
+            plt.figure(figsize=(8, 5))
+            plt.plot(x_eval, u_true, label="u_true", linewidth=2)
+            plt.plot(x_eval, u_pred, '--', label="u_pred", linewidth=2)
+            plt.legend()
+            plt.title("Eigenfunction: True vs Predicted")
+            plt.show()
