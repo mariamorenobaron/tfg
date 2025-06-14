@@ -1,6 +1,6 @@
 import numpy as np
 
-d = 1
+d = 2
 
 CONFIG = {
     "dimension": d,
