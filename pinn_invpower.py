@@ -1,3 +1,4 @@
+import os
 import torch
 import numpy as np
 from utils import sample_lhs, compute_laplacian, periodic_transform, coor_shift
@@ -13,7 +14,6 @@ class InversePowerMethodPINN:
         x = sample_lhs(config["domain_lb"], config["domain_ub"], config["n_train"], config["dimension"])
         self.x_train = torch.tensor(x, dtype=torch.float64, requires_grad=True).to(self.device)
 
-        # Inicializar autofunción con una función suave (ej: producto de senos)
         x_np = self.x_train.detach().cpu().numpy()
         u0_np = np.prod([np.sin(np.pi * x_np[:, i]) for i in range(config["dimension"])], axis=0)
         self.u = torch.tensor(u0_np, dtype=torch.float64, device=self.device).unsqueeze(1)
@@ -24,11 +24,12 @@ class InversePowerMethodPINN:
         self.min_loss = float("inf")
         self.best_lambda = None
         self.best_model_state = None
+
         self.loss_history = []
         self.lambda_history = []
+        self.training_curve = []  # ✅ nuevo: para exportar como JSON
 
         self.optimizer = None
-
         self.lb = torch.tensor(config["domain_lb"], dtype=torch.float64).to(self.device)
         self.ub = torch.tensor(config["domain_ub"], dtype=torch.float64).to(self.device)
         self.d = config["dimension"]
@@ -58,41 +59,35 @@ class InversePowerMethodPINN:
         self.model.train()
         self.optimizer.zero_grad()
 
-        self.loss = torch.tensor(0.0, dtype=torch.float64).to(self.device)
-        self.loss.requires_grad_()
-
-        # Paso 1: u_k ← red neuronal
         u_k = self.net_u(self.x_train)
-
-        # Paso 2: aplicar operador (shift opcional)
         alpha = self.config.get("alpha", 0.0)
         Lu = -compute_laplacian(u_k, self.x_train) - alpha * u_k
-
-        # Paso 3: normalización
         Lu_norm = Lu / (torch.norm(Lu, p=2) + 1e-10)
 
-        # Paso 4: loss de IPMNN
         mse_loss_fn = torch.nn.MSELoss(reduction='mean')
         loss = mse_loss_fn(Lu_norm, self.u)
-
-        # Paso 5: backpropagation
         loss.backward()
 
-        # Paso 6: estimar λ (corrigiendo con α si se usó shift)
         numerator = torch.sum(Lu * u_k)
         denominator = torch.sum(u_k ** 2) + 1e-10
         self.lambda_ = numerator / denominator + alpha
 
-        # Paso 7: actualizar autofunción
         with torch.no_grad():
             self.u = u_k / torch.norm(u_k, p=2)
 
-        # Tracking
         temporal_loss = loss.item()
         lambda_val = self.lambda_.item()
 
         self.loss_history.append((loss.item(), temporal_loss))
         self.lambda_history.append(lambda_val)
+
+        # ✅ Guardar en training_curve para JSON
+        self.training_curve.append({
+            "epoch": len(self.lambda_history),
+            "loss": float(loss.item()),
+            "temporal_loss": float(temporal_loss),
+            "lambda": float(lambda_val)
+        })
 
         if temporal_loss < self.min_loss:
             self.min_loss = temporal_loss
@@ -120,3 +115,8 @@ class InversePowerMethodPINN:
                 print(f"[{it:05d}] Loss = {loss_val:.4e} | λ_est = {lambda_val:.8f} | λ_true = {self.config['lambda_true']:.8f}")
 
         print(f"Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
+
+    def save_training_curve(self):
+        path = os.path.join(self.config["save_dir"], "training_curve.json")
+        with open(path, "w") as f:
+            json.dump(self.training_curve, f, indent=2)
