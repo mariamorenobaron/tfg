@@ -18,7 +18,7 @@ CONFIG = {
     "adam_steps": 50000,
     "adam_lr": 1e-3,
     "lbfgs_steps": 0,
-    "n_train": 10000,
+    "n_train": 20000,
     "fixed_min_loss": None,
 
     "lambda_true": d * np.pi**2,

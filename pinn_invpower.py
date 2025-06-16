@@ -162,7 +162,6 @@ class InversePowerMethodPINN:
         sign = np.sign(np.mean(u_pred * u_true))
         u_pred *= sign
 
-        # 3️⃣ Errores
         L2_error_u = np.sqrt(np.mean((u_true - u_pred) ** 2))
         Linf_error_u = np.max(np.abs(u_true - u_pred))
 
