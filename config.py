@@ -10,7 +10,7 @@ CONFIG = {
 
     "architecture": "MLP",
     "optimizer": "adam",
-    "method": "pmnn",                       # "pmnn" or "ipmnn"
+    "method": "ipmnn",                      # "pmnn" or "ipmnn"
     "depth": 4,
     "width": 40,
     "push_to_git" : True,
@@ -21,7 +21,7 @@ CONFIG = {
     "n_train": 50000,
     "fixed_min_loss": None,
 
-    "lambda_true": 100 - d * np.pi**2,
+    "lambda_true": d * np.pi**2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
 
     "periodic": False,
