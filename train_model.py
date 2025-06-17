@@ -70,6 +70,7 @@ def run_experiment(config, save_dir='numerical_experiments/1_inverse_power_metho
         "optimizer": config["optimizer"],
         "method": config["method"],
         "epochs": config.get("adam_steps", None),
+        "data_points": config.get("n_train", None),
         "lambda_pred": float(pinn.best_lambda),
         "lambda_true": float(config["lambda_true"]),
         "min_loss": float(pinn.min_loss),
