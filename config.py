@@ -12,7 +12,7 @@ CONFIG = {
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
     "depth": 2,
-    "width": 40,
+    "width": 60,
     "push_to_git" : True,
 
     "adam_steps": 50000,
