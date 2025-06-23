@@ -9,7 +9,7 @@ from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
 from pinn_invpower import InversePowerMethodPINN  # Your IPMNN class
 
-def run_experiment(config, save_dir='numerical_experiments/1_inverse_power_method'):
+def run_experiment(config, save_dir='numerical_experiments'):
 
     base_name = f"{config['method']}_{config['architecture']}_{config['dimension']}D_d{config['depth']}_w{config['width']}"
     run_dir = os.path.join(save_dir, base_name)
