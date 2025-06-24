@@ -14,7 +14,7 @@ import subprocess
 def moving_average(x, w):
     return np.convolve(x, np.ones(w) / w, mode='valid')
 
-def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lambda_error=True, subsample=10, linewidth=0.8):
+def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lambda_error=True, subsample=100, linewidth=0.3):
     """
     Genera gráficos de entrenamiento con estilo profesional y opcional push a Git.
     - Suaviza error de lambda si smooth_lambda_error = True
