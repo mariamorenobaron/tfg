@@ -14,7 +14,7 @@ import subprocess
 def moving_average(x, w):
     return np.convolve(x, np.ones(w) / w, mode='valid')
 
-def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lambda_error=True, subsample=100, linewidth=0.3):
+def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lambda_error=True, subsample=100, linewidth=0.7):
     """
     Genera gráficos de entrenamiento con estilo profesional y opcional push a Git.
     - Suaviza error de lambda si smooth_lambda_error = True
@@ -77,8 +77,8 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
                     plt.close()
                     plot_files.append(path)
 
-                save_plot(epochs_plot, losses_plot, r"$\mathcal{L}$", "Loss vs Epochs", "loss_vs_epochs.png", color='navy')
-                save_plot(epochs_plot, temporal_plot, r"$\mathcal{L}_{\mathrm{temp}}$", "Temporal Loss vs Epochs", "temporal_loss_vs_epochs.png", color='darkorange')
+                save_plot(epochs_plot, losses_plot, r"$\mathcal{L}$", "Loss vs Epochs", "loss_vs_epochs.png", color='navy', log_y=True)
+                save_plot(epochs_plot, temporal_plot, r"$\mathcal{L}_{\mathrm{temp}}$", "Temporal Loss vs Epochs", "temporal_loss_vs_epochs.png", color='darkorange', log_y=True)
                 save_plot(epochs_error_plot, lambda_error_plot, r"$|\lambda_{\mathrm{est}} - \lambda_{\mathrm{true}}|$", "Lambda Error vs Epochs", "lambda_error_vs_epochs.png", color='crimson', log_y=True)
 
             except Exception as e:
