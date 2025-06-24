@@ -9,17 +9,16 @@ from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
 from utils import load_model
 import matplotlib.pyplot as plt
+import subprocess
 
-def process_all_training_curves(root_dir):
+def generate_plots_from_training_and_push(root_dir, push_to_git=True):
     """
-    Recorre subdirectorios con training_curve.json y summary.json,
-    genera gráficos:
-        - Loss vs Epochs
-        - Temporal Loss vs Epochs
-        - Lambda Error vs Epochs (con lambda_true leído del summary.json)
-    Devuelve resumen con errores.
+    Para cada subcarpeta en root_dir que contenga training_curve.json y summary.json:
+    - genera 3 gráficos
+    - guarda en su carpeta
+    - opcionalmente hace git add, commit y push
     """
-    summaries = []
+    plot_files = []
 
     for subdir, _, files in os.walk(root_dir):
         if "training_curve.json" in files and "summary.json" in files:
@@ -28,53 +27,50 @@ def process_all_training_curves(root_dir):
             print(f"📊 Procesando: {training_path}")
 
             try:
-                # Leer training data
                 with open(training_path, "r") as f:
-                    training_data = json.load(f)
-
-                # Leer lambda_true desde summary
+                    data = json.load(f)
                 with open(summary_path, "r") as f:
-                    summary_data = json.load(f)
-                lambda_true = summary_data.get("lambda_true", None)
+                    summary = json.load(f)
+
+                lambda_true = summary.get("lambda_true")
                 if lambda_true is None:
-                    print(f" lambda_true no encontrado en {summary_path}")
+                    print(f"⚠ No se encontró lambda_true en {summary_path}")
                     continue
 
                 # Extraer curvas
-                epochs = [entry["epoch"] for entry in training_data]
-                losses = [entry["loss"] for entry in training_data]
-                temporal_losses = [entry["temporal_loss"] for entry in training_data]
-                lambdas = [entry["lambda"] for entry in training_data]
+                epochs = [entry["epoch"] for entry in data]
+                losses = [entry["loss"] for entry in data]
+                temporal_losses = [entry["temporal_loss"] for entry in data]
+                lambdas = [entry["lambda"] for entry in data]
                 lambda_errors = [abs(l - lambda_true) for l in lambdas]
 
-                # Función auxiliar de graficado
+                # Función para graficar y guardar
                 def save_plot(y, ylabel, title, filename, color='blue'):
+                    path = os.path.join(subdir, filename)
                     plt.figure(figsize=(7, 4))
                     plt.plot(epochs, y, color=color, linewidth=2)
                     plt.xlabel("Epochs")
                     plt.ylabel(ylabel)
                     plt.title(title)
                     plt.grid(True)
-                    plt.savefig(os.path.join(subdir, filename))
+                    plt.savefig(path)
                     plt.close()
+                    plot_files.append(path)
 
-                # Guardar gráficos
+                # Crear los 3 gráficos
                 save_plot(losses, "Loss", "Loss vs Epochs", "loss_vs_epochs.png")
                 save_plot(temporal_losses, "Temporal Loss", "Temporal Loss vs Epochs", "temporal_loss_vs_epochs.png", color='orange')
-                save_plot(lambda_errors, "|λ_est - λ_true|", "Lambda Absolute Error vs Epochs", "lambda_error_vs_epochs.png", color='red')
-
-                # Calcular métrica resumen
-                lambda_error_inf = max(abs(lambda_errors[i+1] - lambda_errors[i]) for i in range(len(lambda_errors)-1))
-
-                summaries.append({
-                    "folder": os.path.basename(subdir),
-                    "lambda_true": lambda_true,
-                    "lambda_est_final": lambdas[-1],
-                    "final_temporal_loss": temporal_losses[-1],
-                    "lambda_error_inf": lambda_error_inf
-                })
+                save_plot(lambda_errors, r"|$\lambda_{est} - \lambda_{true}$|", "Lambda Error vs Epochs", "lambda_error_vs_epochs.png", color='red')
 
             except Exception as e:
                 print(f"⚠ Error procesando {subdir}: {e}")
 
-    return pd.DataFrame(summaries)
+    # Git add + commit + push
+    if push_to_git and plot_files:
+        try:
+            subprocess.run(["git", "add"] + plot_files, check=True)
+            subprocess.run(["git", "commit", "-m", "Add training plots using training_curve and summary"], check=True)
+            subprocess.run(["git", "push"], check=True)
+            print("🚀 Gráficas subidas a GitHub con éxito.")
+        except subprocess.CalledProcessError as e:
+            print(f"⚠ Error al hacer push a GitHub: {e}")
