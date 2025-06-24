@@ -73,6 +73,7 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
                     plt.legend(fontsize=11)
                     plt.grid(True, which="both", linestyle="--", linewidth=0.5)
                     plt.tight_layout()
+                    plt.minorticks_off()
                     plt.savefig(path, dpi=300, bbox_inches='tight')
                     plt.close()
                     plot_files.append(path)
