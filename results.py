@@ -11,12 +11,14 @@ from utils import load_model
 import matplotlib.pyplot as plt
 import subprocess
 
-def generate_plots_from_training_and_push(root_dir, push_to_git=True):
+def moving_average(x, w):
+    return np.convolve(x, np.ones(w) / w, mode='valid')
+
+def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lambda_error=True, subsample=10, linewidth=0.8):
     """
-    Para cada subcarpeta en root_dir con training_curve.json y summary.json:
-    - genera 3 gráficos con estilo profesional
-    - guarda los .png
-    - git add + commit + push si se desea
+    Genera gráficos de entrenamiento con estilo profesional y opcional push a Git.
+    - Suaviza error de lambda si smooth_lambda_error = True
+    - Submuestrea cada 'subsample' puntos para evitar saturación visual
     """
     plot_files = []
 
@@ -43,13 +45,29 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True):
                 lambdas = [entry["lambda"] for entry in data]
                 lambda_errors = [abs(l - lambda_true) for l in lambdas]
 
-                def styled_plot(y, ylabel, title, filename, color='blue', log_y=False):
+                # Opcional: suavizado
+                if smooth_lambda_error:
+                    lambda_errors_smoothed = moving_average(lambda_errors, w=20)
+                    epochs_smoothed = epochs[19:]  # recortar los primeros w-1
+                else:
+                    lambda_errors_smoothed = lambda_errors
+                    epochs_smoothed = epochs
+
+                # Submuestreo
+                idx = slice(None, None, subsample)
+                epochs_plot = np.array(epochs)[idx]
+                losses_plot = np.array(losses)[idx]
+                temporal_plot = np.array(temporal_losses)[idx]
+                epochs_error_plot = np.array(epochs_smoothed)[idx]
+                lambda_error_plot = np.array(lambda_errors_smoothed)[idx]
+
+                def save_plot(x, y, ylabel, title, filename, color='blue', log_y=False):
                     path = os.path.join(subdir, filename)
                     plt.figure(figsize=(5, 4))
                     if log_y:
-                        plt.semilogy(epochs, y, color=color, linewidth=1.8, label=ylabel)
+                        plt.semilogy(x, y, color=color, linewidth=linewidth, alpha=0.7, label=ylabel)
                     else:
-                        plt.plot(epochs, y, color=color, linewidth=1.8, label=ylabel)
+                        plt.plot(x, y, color=color, linewidth=linewidth, alpha=0.7, label=ylabel)
                     plt.xlabel(r"$k$", fontsize=12)
                     plt.ylabel(ylabel, fontsize=12)
                     plt.legend(fontsize=11)
@@ -59,18 +77,18 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True):
                     plt.close()
                     plot_files.append(path)
 
-                styled_plot(losses, r"$\mathcal{L}$", "Loss vs Epochs", "loss_vs_epochs.png", color='navy')
-                styled_plot(temporal_losses, r"$\mathcal{L}_{\mathrm{temp}}$", "Temporal Loss vs Epochs", "temporal_loss_vs_epochs.png", color='darkorange')
-                styled_plot(lambda_errors, r"$|\lambda_{\mathrm{est}} - \lambda_{\mathrm{true}}|$", "Lambda Error vs Epochs", "lambda_error_vs_epochs.png", color='crimson', log_y=True)
+                save_plot(epochs_plot, losses_plot, r"$\mathcal{L}$", "Loss vs Epochs", "loss_vs_epochs.png", color='navy')
+                save_plot(epochs_plot, temporal_plot, r"$\mathcal{L}_{\mathrm{temp}}$", "Temporal Loss vs Epochs", "temporal_loss_vs_epochs.png", color='darkorange')
+                save_plot(epochs_error_plot, lambda_error_plot, r"$|\lambda_{\mathrm{est}} - \lambda_{\mathrm{true}}|$", "Lambda Error vs Epochs", "lambda_error_vs_epochs.png", color='crimson', log_y=True)
 
             except Exception as e:
                 print(f"⚠ Error procesando {subdir}: {e}")
 
-    # Git operations
+    # Git
     if push_to_git and plot_files:
         try:
             subprocess.run(["git", "add"] + plot_files, check=True)
-            subprocess.run(["git", "commit", "-m", "Add high-quality training plots"], check=True)
+            subprocess.run(["git", "commit", "-m", "Add smoothed high-quality training plots"], check=True)
             subprocess.run(["git", "push"], check=True)
             print("🚀 Gráficas subidas a GitHub con éxito.")
         except subprocess.CalledProcessError as e:
