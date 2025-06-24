@@ -8,69 +8,73 @@ from config import CONFIG
 from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
 from utils import load_model
+import matplotlib.pyplot as plt
 
-MODEL_DIRS = [
-    "saved_model_mlp_d1",
-    "saved_model_resnet_d1",
-    "saved_model_mlp_d2"
-]
+def process_all_training_curves(root_dir):
+    """
+    Recorre subdirectorios con training_curve.json y summary.json,
+    genera gráficos:
+        - Loss vs Epochs
+        - Temporal Loss vs Epochs
+        - Lambda Error vs Epochs (con lambda_true leído del summary.json)
+    Devuelve resumen con errores.
+    """
+    summaries = []
 
-def evaluate_model(folder):
-    # Cargar modelo + arquitectura
-    model_class_dict = {"MLP": MLP, "ResNet": ResNet}
-    model, arch_cfg = load_model(model_class_dict, folder=folder)
+    for subdir, _, files in os.walk(root_dir):
+        if "training_curve.json" in files and "summary.json" in files:
+            training_path = os.path.join(subdir, "training_curve.json")
+            summary_path = os.path.join(subdir, "summary.json")
+            print(f"📊 Procesando: {training_path}")
 
-    # Restaurar config base + arquitectura
-    config = CONFIG.copy()
-    config["architecture"] = arch_cfg["architecture"]
-    config["depth"] = arch_cfg["depth"]
-    config["width"] = arch_cfg["width"]
-    config["input_dim"] = arch_cfg["input_dim"]
+            try:
+                # Leer training data
+                with open(training_path, "r") as f:
+                    training_data = json.load(f)
 
-    # Instanciar PINN y evaluar
-    pinn = PowerMethodPINN(model, config)
-    start = time.time()
-    x_eval = pinn.sample_points(70000).detach().cpu().numpy()
-    x_tensor = torch.tensor(x_eval, dtype=torch.float32).to(pinn.device)
-    x_input = pinn.apply_input_transform(x_tensor)
+                # Leer lambda_true desde summary
+                with open(summary_path, "r") as f:
+                    summary_data = json.load(f)
+                lambda_true = summary_data.get("lambda_true", None)
+                if lambda_true is None:
+                    print(f" lambda_true no encontrado en {summary_path}")
+                    continue
 
-    with torch.no_grad():
-        u_pred = model(x_input).cpu().numpy()
+                # Extraer curvas
+                epochs = [entry["epoch"] for entry in training_data]
+                losses = [entry["loss"] for entry in training_data]
+                temporal_losses = [entry["temporal_loss"] for entry in training_data]
+                lambdas = [entry["lambda"] for entry in training_data]
+                lambda_errors = [abs(l - lambda_true) for l in lambdas]
 
-    elapsed = time.time() - start
-    u_true = config["exact_u"](x_eval)
-    u_pred /= np.linalg.norm(u_pred)
-    u_true /= np.linalg.norm(u_true)
-    l2_error = np.linalg.norm(u_pred - u_true) / np.sqrt(u_pred.shape[0])
+                # Función auxiliar de graficado
+                def save_plot(y, ylabel, title, filename, color='blue'):
+                    plt.figure(figsize=(7, 4))
+                    plt.plot(epochs, y, color=color, linewidth=2)
+                    plt.xlabel("Epochs")
+                    plt.ylabel(ylabel)
+                    plt.title(title)
+                    plt.grid(True)
+                    plt.savefig(os.path.join(subdir, filename))
+                    plt.close()
 
-    lambda_pred = pinn.lambda_
-    lambda_true = config["lambda_true"]
-    lambda_error = np.abs(lambda_pred - lambda_true)
+                # Guardar gráficos
+                save_plot(losses, "Loss", "Loss vs Epochs", "loss_vs_epochs.png")
+                save_plot(temporal_losses, "Temporal Loss", "Temporal Loss vs Epochs", "temporal_loss_vs_epochs.png", color='orange')
+                save_plot(lambda_errors, "|λ_est - λ_true|", "Lambda Absolute Error vs Epochs", "lambda_error_vs_epochs.png", color='red')
 
-    return {
-        "folder": folder,
-        "arch": config["architecture"],
-        "depth": config["depth"],
-        "width": config["width"],
-        "L2_u_error": float(l2_error),
-        "lambda_pred": float(lambda_pred),
-        "lambda_true": float(lambda_true),
-        "lambda_error": float(lambda_error),
-        "eval_time": float(elapsed)
-    }
+                # Calcular métrica resumen
+                lambda_error_inf = max(abs(lambda_errors[i+1] - lambda_errors[i]) for i in range(len(lambda_errors)-1))
 
-if __name__ == "__main__":
-    results = []
+                summaries.append({
+                    "folder": os.path.basename(subdir),
+                    "lambda_true": lambda_true,
+                    "lambda_est_final": lambdas[-1],
+                    "final_temporal_loss": temporal_losses[-1],
+                    "lambda_error_inf": lambda_error_inf
+                })
 
-    for folder in MODEL_DIRS:
-        if os.path.exists(folder):
-            print(f" Evaluating: {folder}")
-            metrics = evaluate_model(folder)
-            results.append(metrics)
-        else:
-            print(f" Folder not found: {folder}")
+            except Exception as e:
+                print(f"⚠ Error procesando {subdir}: {e}")
 
-    df = pd.DataFrame(results)
-    df.to_csv("results_summary.csv", index=False)
-    print("\n Results saved to results_summary.csv")
-    print(df)
+    return pd.DataFrame(summaries)

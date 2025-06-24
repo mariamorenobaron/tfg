@@ -11,8 +11,8 @@ CONFIG = {
     "architecture": "MLP",
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
-    "depth": 4,
-    "width": 40,
+    "depth": 2,
+    "width": 80,
     "push_to_git" : True,
 
     "adam_steps": 50000,
