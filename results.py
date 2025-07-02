@@ -91,6 +91,6 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
             subprocess.run(["git", "add"] + plot_files, check=True)
             subprocess.run(["git", "commit", "-m", "Add smoothed high-quality training plots"], check=True)
             subprocess.run(["git", "push"], check=True)
-            print("🚀 Gráficas subidas a GitHub con éxito.")
+            print(" Gráficas subidas a GitHub con éxito.")
         except subprocess.CalledProcessError as e:
             print(f"⚠ Error al hacer push a GitHub: {e}")
