@@ -12,14 +12,16 @@ CONFIG = {
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
     "depth": 2,
-    "width": 80,
+    "width": 20,  # probar con 60
     "push_to_git" : True,
 
-    "adam_steps": 50000,
+    "adam_steps": 15000,  # Bajar Iteraciones para Bloque4
     "adam_lr": 1e-3,
-    "lbfgs_steps": 0,
     "n_train": 20000,
-    "fixed_min_loss": None,
+    "early_stopping": False,
+    "tolerance": 1e-6,
+    "use_seed": True,
+    "seed": 42,
 
     "lambda_true": 100 - d * np.pi**2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),

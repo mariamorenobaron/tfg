@@ -4,23 +4,33 @@ import json
 import torch
 import tracemalloc
 import subprocess
-
 from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
-from pinn_invpower import InversePowerMethodPINN  # Your IPMNN class
+from pinn_invpower import InversePowerMethodPINN
+from utils import maybe_push_to_git
 
 def run_experiment(config, save_dir='numerical_experiments'):
 
     base_name = f"{config['method']}_{config['architecture']}_{config['dimension']}D_d{config['depth']}_w{config['width']}"
     run_dir = os.path.join(save_dir, base_name)
     os.makedirs(run_dir, exist_ok=True)
-    config["save_dir"] = run_dir  # Update for saving later
+    config["save_dir"] = run_dir
 
-    # Define input dimension based on periodicity
+    if config.get("use_seed", False):
+        seed = config.get("seed", 42)
+        import numpy as np
+        import torch
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        print(f"[INFO] Using fixed seed: {seed}")
+    else:
+        print("[INFO] Random seed is not fixed.")
+
     input_dim = config["dimension"] * (2 * config.get("pbc_k", 1) if config.get("periodic", False) else 1)
     config["input_dim"] = input_dim
 
-    # Build model
     if config["architecture"].lower() == 'mlp':
         layers = [input_dim] + [config["width"]] * config["depth"] + [1]
         model = MLP(layers)
@@ -29,7 +39,6 @@ def run_experiment(config, save_dir='numerical_experiments'):
     else:
         raise ValueError("Unknown architecture.")
 
-    # Select method class
     method = config["method"].lower()
     if method == "pmnn":
         pinn = PowerMethodPINN(model.double(), config)
@@ -46,11 +55,7 @@ def run_experiment(config, save_dir='numerical_experiments'):
 
     if config["optimizer"].lower() == "adam":
         pinn.optimize_adam()
-    elif config["optimizer"].lower() == "lbfgs":
-        pinn.optimize_lbfgs()
-    elif config["optimizer"].lower() == "adam_lbfgs":
-        pinn.optimize_adam()
-        pinn.optimize_lbfgs()
+
     else:
         raise ValueError("Unknown optimizer.")
 
@@ -86,13 +91,7 @@ def run_experiment(config, save_dir='numerical_experiments'):
     pinn.save_training_curve()
 
     # Optional GitHub push
-    if config.get("push_to_git", False):
-        try:
-            subprocess.run(["git", "add", run_dir], check=True)
-            commit_msg = f"Add results for {base_name}"
-            subprocess.run(["git", "commit", "-m", commit_msg], check=True)
-            subprocess.run(["git", "push"], check=True)
-        except subprocess.CalledProcessError as e:
-            print(f"⚠ Git push failed: {e}")
+    if config.get("push_to_git", True):
+        maybe_push_to_git(run_dir, message= f"Training completed for {base_name} in {elapsed:.2f} seconds.")
 
     return pinn

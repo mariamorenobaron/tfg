@@ -73,7 +73,8 @@ class PowerMethodPINN:
         denominator = torch.sum(u_prev ** 2) + 1e-10
         self.lambda_ = numerator / denominator
 
-        # Save metrics
+        #it =+1
+        #if it % 100 == 0 or it == self.config["adam_steps"] - 1:
         self.loss_history.append((loss.item(), tmp_loss.item()))
         self.lambda_history.append(self.lambda_.item())
         self.training_curve.append({
@@ -97,12 +98,21 @@ class PowerMethodPINN:
         )
         print("Starting Adam training...")
 
+
         for it in range(self.config["adam_steps"]):
-            loss, loss_val, lambda_val = self.optimize_one_epoch()
+            loss, temporal_loss, lambda_val = self.optimize_one_epoch()
             self.optimizer.step()
 
+
             if it % 1000 == 0 or it == self.config["adam_steps"] - 1:
-                print(f"[{it:05d}] Loss = {loss_val:.4e} | λ_est = {lambda_val:.6f} | λ_true = {self.config['lambda_true']:.6f}")
+                print(f"[{it:05d}] Loss = {temporal_loss:.4e} | λ_est = {lambda_val:.6f} | λ_true = {self.config['lambda_true']:.6f}")
+
+            if self.config.get("early_stopping", False):
+                tolerance = self.config.get("tolerance", 1e-6)
+                if temporal_loss < tolerance:
+                    print(f"[INFO] Early stopping at iteration {it} with loss {temporal_loss:.4e}")
+                    break
+
 
         print(f"Finished Adam. Best λ = {self.best_lambda:.6f} | Min Loss = {self.min_loss:.4e}")
 

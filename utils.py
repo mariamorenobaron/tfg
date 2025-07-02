@@ -6,8 +6,7 @@ import json
 import pyDOE
 from pyDOE import lhs
 import matplotlib.pyplot as plt
-torch.set_default_dtype(torch.float64)  
-
+import subprocess
 
 
 def coor_shift(X, lb, ub):
@@ -82,3 +81,36 @@ def load_model(model_class_dict, folder="saved_model"):
     model.load_state_dict(torch.load(os.path.join(folder, "model_weights.pt")))
     return model, arch_config
 
+
+def maybe_push_to_git(path_to_add, message=None):
+    """
+    Adds, commits, and pushes a path to a Git repository if it is inside one.
+
+    Args:
+        path_to_add (str): Path to the file or directory to add and push.
+        message (str): Commit message. If None, a default message is generated.
+    """
+    if not os.path.exists(path_to_add):
+        print(f"[ERROR] Path does not exist: {path_to_add}")
+        return
+
+    try:
+        # Ensure we're inside a git repo
+        subprocess.run(["git", "rev-parse", "--is-inside-work-tree"], check=True, stdout=subprocess.DEVNULL)
+
+        # Add path
+        subprocess.run(["git", "add", path_to_add], check=True)
+
+        # Build default message if not provided
+        if message is None:
+            message = f"Auto-commit changes to {os.path.basename(path_to_add)}"
+
+        subprocess.run(["git", "commit", "-m", message], check=True)
+        subprocess.run(["git", "push"], check=True)
+
+        print(f"[INFO] Git push completed for '{path_to_add}'.")
+
+    except subprocess.CalledProcessError as e:
+        print(f"[WARNING] Git operation failed: {e}")
+    except Exception as ex:
+        print(f"[ERROR] Unexpected error: {ex}")

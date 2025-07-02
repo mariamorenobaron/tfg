@@ -28,7 +28,7 @@ class InversePowerMethodPINN:
 
         self.loss_history = []
         self.lambda_history = []
-        self.training_curve = []  # ✅ nuevo: para exportar como JSON
+        self.training_curve = []
 
         self.optimizer = None
         self.lb = torch.tensor(config["domain_lb"], dtype=torch.float64).to(self.device)
@@ -82,7 +82,6 @@ class InversePowerMethodPINN:
         self.loss_history.append((loss.item(), temporal_loss))
         self.lambda_history.append(lambda_val)
 
-        # ✅ Guardar en training_curve para JSON
         self.training_curve.append({
             "epoch": len(self.lambda_history),
             "loss": float(loss.item()),
@@ -110,10 +109,10 @@ class InversePowerMethodPINN:
 
         print("Starting training with Adam (IPMNN).\n")
         for it in range(self.config["adam_steps"]):
-            loss, loss_val, lambda_val = self.optimize_one_epoch()
+            loss, temporal_loss, lambda_val = self.optimize_one_epoch()
             self.optimizer.step()
             if it % 1000 == 0 or it == self.config["adam_steps"] - 1:
-                print(f"[{it:05d}] Loss = {loss_val:.4e} | λ_est = {lambda_val:.8f} | λ_true = {self.config['lambda_true']:.8f}")
+                print(f"[{it:05d}] Loss = {temporal_loss:.4e} | λ_est = {lambda_val:.8f} | λ_true = {self.config['lambda_true']:.8f}")
 
         print(f"Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
 
@@ -132,7 +131,6 @@ class InversePowerMethodPINN:
         domain_ub = np.array(self.config["domain_ub"])
         dim = self.config["dimension"]
 
-        # 1️⃣ Puntos de evaluación
         if dim == 1:
             x_eval = np.linspace(domain_lb[0], domain_ub[0], n_eval_points).reshape(-1, 1)
         else:
@@ -142,7 +140,6 @@ class InversePowerMethodPINN:
 
         x_eval_tensor = torch.tensor(x_eval, dtype=torch.float64, device=self.device)
 
-        # 2️⃣ Predicción u(x)
         with torch.no_grad():
             x_input = self.apply_input_transform(x_eval_tensor)
             x_input_shifted = coor_shift(x_input, self.lb, self.ub)
