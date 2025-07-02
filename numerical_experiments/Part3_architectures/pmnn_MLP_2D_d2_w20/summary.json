@@ -4,13 +4,13 @@
     "width": 20,
     "optimizer": "adam",
     "method": "pmnn",
-    "epochs": 50000,
+    "epochs": 15000,
     "data_points": 20000,
-    "lambda_pred": 80.26137325622538,
+    "lambda_pred": 80.25392084602738,
     "lambda_true": 80.26079119782128,
-    "min_loss": 8.813567942016021e-14,
-    "time_seconds": 671.1612660884857,
-    "peak_ram_MB": 82.00270175933838,
-    "peak_gpu_MB": 347.583984375,
-    "device": "cuda"
+    "min_loss": 2.794691379441834e-13,
+    "time_seconds": 1217.4730205535889,
+    "peak_ram_MB": 67.26708316802979,
+    "peak_gpu_MB": 0.0,
+    "device": "cpu"
 }
