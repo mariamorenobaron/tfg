@@ -15,7 +15,7 @@ CONFIG = {
     "width": 20,  # probar con 60
     "push_to_git" : True,
 
-    "adam_steps": 2000,  # Bajar Iteraciones para Bloque4
+    "adam_steps": 15000,  # Bajar Iteraciones para Bloque4
     "adam_lr": 1e-3,
     "n_train": 20000,
     "early_stopping": False,
