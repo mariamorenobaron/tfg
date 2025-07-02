@@ -11,8 +11,8 @@ CONFIG = {
     "architecture": "MLP",
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
-    "depth": 2,
-    "width": 80,  # probar con 60
+    "depth": 4,
+    "width": 20,  # probar con 60
     "push_to_git" : True,
 
     "adam_steps": 15000,  # Bajar Iteraciones para Bloque4
