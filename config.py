@@ -8,11 +8,11 @@ CONFIG = {
     "domain_ub": np.ones(d),
     "M": 100,
 
-    "architecture": "MLP",
+    "architecture": "MLP",     # "MLP" or "ResNet"
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
-    "depth": 4,
-    "width": 80,  # probar con 60
+    "depth": 6,
+    "width": 20,  # probar con 60
     "push_to_git" : True,
 
     "adam_steps": 15000,  # Bajar Iteraciones para Bloque4
@@ -29,5 +29,5 @@ CONFIG = {
     "periodic": False,
     "pbc_k": 1,
     "periods": None,
-    "alpha": 0.0
+    "alpha": 0.0    # component for shifted inverse power method
 }
