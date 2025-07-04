@@ -11,7 +11,7 @@ CONFIG = {
     "architecture": "MLP",     # "MLP" or "ResNet"
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
-    "depth": 6,
+    "depth": 8,
     "width": 20,  # probar con 60
     "push_to_git" : True,
 
