@@ -11,7 +11,7 @@ from utils import maybe_push_to_git
 
 def run_experiment(config, save_dir='numerical_experiments'):
 
-    base_name = f"{config['method']}_{config['architecture']}_{config['dimension']}D_d{config['depth']}_w{config['width']}"
+    base_name = f"{config['method']}_{config['architecture']}_{config['dimension']}D_d{config['depth']}_w{config['width']}_alpha{config['alpha']}"
     run_dir = os.path.join(save_dir, base_name)
     os.makedirs(run_dir, exist_ok=True)
     config["save_dir"] = run_dir

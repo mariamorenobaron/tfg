@@ -4,7 +4,6 @@ import json
 import numpy as np
 from utils import sample_lhs, compute_laplacian, periodic_transform, coor_shift
 
-
 class InversePowerMethodPINN:
     def __init__(self, model, config):
         self.model = model
@@ -15,6 +14,7 @@ class InversePowerMethodPINN:
         x = sample_lhs(config["domain_lb"], config["domain_ub"], config["n_train"], config["dimension"])
         self.x_train = torch.tensor(x, dtype=torch.float64, requires_grad=True).to(self.device)
 
+        # Initial guess for u
         x_np = self.x_train.detach().cpu().numpy()
         u0_np = np.prod([np.sin(np.pi * x_np[:, i]) for i in range(config["dimension"])], axis=0)
         self.u = torch.tensor(u0_np, dtype=torch.float64, device=self.device).unsqueeze(1)
@@ -111,8 +111,16 @@ class InversePowerMethodPINN:
         for it in range(self.config["adam_steps"]):
             loss, temporal_loss, lambda_val = self.optimize_one_epoch()
             self.optimizer.step()
+
             if it % 1000 == 0 or it == self.config["adam_steps"] - 1:
                 print(f"[{it:05d}] Loss = {temporal_loss:.4e} | λ_est = {lambda_val:.8f} | λ_true = {self.config['lambda_true']:.8f}")
+
+            # Early stopping
+            if self.config.get("early_stopping", False):
+                tolerance = self.config.get("tolerance", 1e-6)
+                if temporal_loss < tolerance:
+                    print(f"[INFO] Early stopping at iteration {it} with loss {temporal_loss:.4e}")
+                    break
 
         print(f"Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
 
@@ -122,11 +130,7 @@ class InversePowerMethodPINN:
             json.dump(self.training_curve, f, indent=2)
 
     def evaluate_and_plot(self, n_eval_points=10000):
-        """
-        Evaluación y visualización (solo imprime resultados).
-        """
         print("===== Evaluation (IPMNN) =====")
-
         domain_lb = np.array(self.config["domain_lb"])
         domain_ub = np.array(self.config["domain_ub"])
         dim = self.config["dimension"]
