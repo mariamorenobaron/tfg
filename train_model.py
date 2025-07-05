@@ -3,6 +3,7 @@ import time
 import json
 import torch
 import tracemalloc
+import numpy as np
 import subprocess
 from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
@@ -18,8 +19,6 @@ def run_experiment(config, save_dir='numerical_experiments'):
 
     if config.get("use_seed", False):
         seed = config.get("seed", 42)
-        import numpy as np
-        import torch
         np.random.seed(seed)
         torch.manual_seed(seed)
         torch.backends.cudnn.deterministic = True
