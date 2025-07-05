@@ -57,7 +57,7 @@ class PowerMethodPINN:
         self.optimizer.zero_grad()
 
         u_prev = self.net_u(self.x_train)
-        Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
+        Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev   # equation: Lu = ∇²u + M*u MODIFY IF NEW EQUATION
 
         mse_loss_fn = torch.nn.MSELoss(reduction='mean')
         tmp_loss = mse_loss_fn(Lu, self.lambda_ * self.u)

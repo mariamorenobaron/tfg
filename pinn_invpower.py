@@ -62,7 +62,7 @@ class InversePowerMethodPINN:
 
         u_k = self.net_u(self.x_train)
         alpha = self.config.get("alpha", 0.0)
-        Lu = -compute_laplacian(u_k, self.x_train) - alpha * u_k
+        Lu = -compute_laplacian(u_k, self.x_train) - alpha * u_k   # equation: Lu = -∇²u MODIFY IF NEW EQUATION | sifted Lu = -∇²u - α*u
         Lu_norm = Lu / (torch.norm(Lu, p=2) + 1e-10)
 
         mse_loss_fn = torch.nn.MSELoss(reduction='mean')

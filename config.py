@@ -23,8 +23,8 @@ CONFIG = {
     "use_seed": False,
     "seed": 1,
 
-    "lambda_true": d * np.pi**2,
-    "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
+    "lambda_true": 4 * np.pi ** 2,
+    "exact_u": lambda x: np.prod(np.sin(2* np.pi * x), axis=1, keepdims=True),
 
     "periodic": False,
     "pbc_k": 1,
