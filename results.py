@@ -91,7 +91,7 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
             print(f"Error al hacer push a GitHub: {e}")
 
 
-def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=True, dimension = None):
+def evaluate_model_and_generate_results(subdir, push_to_git=True):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -104,7 +104,12 @@ def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=Tru
     with open(summary_path, "r") as f:
         summary = json.load(f)
 
-    model = reconstruct_model(summary,dimension)
+    config_path = os.path.join(subdir, "config.py")
+    with open(config_path, "r") as f:
+        config = {}
+        exec(f.read(), config)
+
+    model = reconstruct_model(summary,config)
     model.load_state_dict(torch.load(os.path.join(subdir, "model.pt"), map_location=device))
     model = model.to(device).double()
 
@@ -118,6 +123,7 @@ def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=Tru
     n_eval_points = 10000
 
     # --- Puntos de evaluación ---
+
     if dim == 1:
         x_eval = np.linspace(domain_lb[0], domain_ub[0], n_eval_points).reshape(-1, 1)
     else:
@@ -129,7 +135,7 @@ def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=Tru
     # --- Evaluar u_pred ---
     with torch.no_grad():
         u_pred_tensor = model(x_tensor)
-    u_true = exact_u(x_eval)
+    u_true = config["exact_u"](x_eval)
 
     u_pred = u_pred_tensor.cpu().numpy()
     u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(len(u_pred))
@@ -236,9 +242,9 @@ def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=Tru
         except subprocess.CalledProcessError as e:
             print(f"⚠ Git error: {e}")
 
-def reconstruct_model(arch_config):
-    arch = arch_config["architecture"]
-    input_dim = arch_config["input_dim"]
+def reconstruct_model(arch_config, config):
+    arch = config["architecture"]
+    input_dim = config["input_dim"]
     depth = arch_config["depth"]
     width = arch_config["width"]
 
