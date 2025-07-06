@@ -94,8 +94,6 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
 def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=True):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-
-    # --- Cargar modelo ---
     model_path = os.path.join(subdir, "model.pt")
     if not os.path.exists(model_path):
         print(f"No se encontró model.pt en {subdir}")
