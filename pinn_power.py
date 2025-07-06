@@ -41,7 +41,7 @@ class PowerMethodPINN:
         x_input = coor_shift(x_input, self.lb, self.ub)
         u_pred = self.model(x_input)
         if not self.config.get("periodic", False):
-            u_pred = apply_boundary_condition(x, u_pred)
+            u_pred = apply_boundary_condition(self.config, x, u_pred)
         return u_pred
 
     def optimize_one_epoch(self):
@@ -133,7 +133,7 @@ class PowerMethodPINN:
             u_raw = self.model(x_input_shifted)
 
             if not self.config.get("periodic", False):
-                u_pred_tensor = apply_boundary_condition(x_tensor, u_raw)
+                u_pred_tensor = apply_boundary_condition(self.config,x_tensor, u_raw)
             else:
                 u_pred_tensor = u_raw
 

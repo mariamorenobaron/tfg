@@ -139,7 +139,7 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
         u_raw = model(x_input)
 
         if not config.get("periodic", False):
-            u_pred_tensor = apply_boundary_condition(x_tensor, u_raw)
+            u_pred_tensor = apply_boundary_condition(config,x_tensor, u_raw)
         else:
             u_pred_tensor = u_raw
 
