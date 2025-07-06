@@ -10,12 +10,12 @@ CONFIG = {
 
     "architecture": "MLP",     # "MLP" or "ResNet"
     "optimizer": "adam",
-    "method": "ipmnn",                      # "pmnn" or "ipmnn"
+    "method": "pmnn",                      # "pmnn" or "ipmnn"
     "depth": 4,
-    "width": 20,  # probar con 60
+    "width": 20,
     "push_to_git" : True,
 
-    "adam_steps": 5000,  # Bajar Iteraciones para Bloque4
+    "adam_steps": 5000,
     "adam_lr": 1e-3,
     "n_train": 20000,
     "early_stopping": False,
