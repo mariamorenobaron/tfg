@@ -99,8 +99,8 @@ def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=Tru
         print(f"No se encontró model.pt en {subdir}")
         return
 
-    model = load_model(model_path, config).to(device).double()
-    model.eval()
+    model = torch.load(os.path.join(subdir, "model.pt"))
+    model = model.to(device).double()
 
     summary_path = os.path.join(subdir, "summary.json")
     with open(summary_path, "r") as f:
@@ -134,17 +134,7 @@ def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=Tru
     u_true = u_true / np.linalg.norm(u_true) * np.sqrt(len(u_true))
     u_pred *= np.sign(np.mean(u_pred * u_true))
 
-    # --- Calcular lambda_pred ---
-    x_tensor.requires_grad_(True)
-    u_pred_tensor = model(x_tensor)
-    grad_u = torch.autograd.grad(
-        outputs=u_pred_tensor,
-        inputs=x_tensor,
-        grad_outputs=torch.ones_like(u_pred_tensor),
-        create_graph=True
-    )[0]
-    lambda_pred_tensor = grad_u.pow(2).sum(dim=1).mean() / u_pred_tensor.pow(2).mean()
-    lambda_pred = lambda_pred_tensor.detach().cpu().item()
+    lambda_pred = float(summary["lambda_pred"]) if "lambda_pred" in summary else None
 
     # --- Métricas ---
     L2_error = np.sqrt(np.mean((u_true - u_pred) ** 2))
