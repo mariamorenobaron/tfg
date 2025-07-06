@@ -152,13 +152,12 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
 
     lambda_pred = float(summary["lambda_pred"]) if "lambda_pred" in summary else None
 
-    # --- Métricas ---
+    # --- Metrics ---
     L2_error = np.sqrt(np.mean((u_true - u_pred) ** 2))
     Linf_error = np.max(np.abs(u_true - u_pred))
     lambda_abs_error = abs(lambda_pred - lambda_true)
     lambda_rel_error = lambda_abs_error / abs(lambda_true)
 
-    # --- Directorio para guardar ---
     results_dir = os.path.join(subdir, "evaluation_results")
     os.makedirs(results_dir, exist_ok=True)
 
@@ -212,7 +211,7 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
 
     plt.figure()
     for data, label in zip(datas, data_labels):
-        plt.plot(data[:, 0], data[:, 1], label=label)
+        plt.plot(data[:, 0], data[:, 1],'--' ,label=label)
     plt.xlabel("u")
     plt.ylabel("density")
     plt.legend()
@@ -236,7 +235,7 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
     with open(os.path.join(results_dir, "results_summary.json"), "w") as f:
         json.dump(results, f, indent=4)
 
-    print("Evaluación completada:")
+    print("Evaluation:")
     for k, v in results.items():
         print(f"  {k}: {v:.6g}" if isinstance(v, float) else f"  {k}: {v}")
 
