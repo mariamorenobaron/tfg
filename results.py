@@ -1,32 +1,29 @@
-import os
-import json
 import time
-import numpy as np
 import pandas as pd
-import torch
 from config import CONFIG
 from model import MLP, ResNet
 from pinn_power import PowerMethodPINN
-from utils import load_model
-import matplotlib.pyplot as plt
 import subprocess
+import os
+import json
+import torch
+import numpy as np
+import matplotlib.pyplot as plt
+from pyDOE import lhs
+from utils import load_model
 
 def moving_average(x, w):
     return np.convolve(x, np.ones(w) / w, mode='valid')
 
 def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lambda_error=True, subsample=100, linewidth=0.7):
-    """
-    Genera gráficos de entrenamiento con estilo profesional y opcional push a Git.
-    - Suaviza error de lambda si smooth_lambda_error = True
-    - Submuestrea cada 'subsample' puntos para evitar saturación visual
-    """
+
     plot_files = []
 
     for subdir, _, files in os.walk(root_dir):
         if "training_curve.json" in files and "summary.json" in files:
             training_path = os.path.join(subdir, "training_curve.json")
             summary_path = os.path.join(subdir, "summary.json")
-            print(f"📊 Procesando: {training_path}")
+            print(f"Processing: {training_path}")
 
             try:
                 with open(training_path, "r") as f:
@@ -36,7 +33,7 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
 
                 lambda_true = summary.get("lambda_true")
                 if lambda_true is None:
-                    print(f"⚠ No se encontró lambda_true en {summary_path}")
+                    print(f"Not found lambda true {summary_path}")
                     continue
 
                 epochs = [entry["epoch"] for entry in data]
@@ -45,7 +42,6 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
                 lambdas = [entry["lambda"] for entry in data]
                 lambda_errors = [abs(l - lambda_true) for l in lambdas]
 
-                # Opcional: suavizado
                 if smooth_lambda_error:
                     lambda_errors_smoothed = moving_average(lambda_errors, w=20)
                     epochs_smoothed = epochs[19:]  # recortar los primeros w-1
@@ -53,7 +49,6 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
                     lambda_errors_smoothed = lambda_errors
                     epochs_smoothed = epochs
 
-                # Submuestreo
                 idx = slice(None, None, subsample)
                 epochs_plot = np.array(epochs)[idx]
                 losses_plot = np.array(losses)[idx]
@@ -83,7 +78,7 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
                 save_plot(epochs_error_plot, lambda_error_plot, r"$|\lambda_{\mathrm{est}} - \lambda_{\mathrm{true}}|$", "Lambda Error vs Epochs", "lambda_error_vs_epochs.png", color='crimson', log_y=True)
 
             except Exception as e:
-                print(f"⚠ Error procesando {subdir}: {e}")
+                print(f"Error {subdir}: {e}")
 
     # Git
     if push_to_git and plot_files:
@@ -93,4 +88,160 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
             subprocess.run(["git", "push"], check=True)
             print(" Gráficas subidas a GitHub con éxito.")
         except subprocess.CalledProcessError as e:
-            print(f"⚠ Error al hacer push a GitHub: {e}")
+            print(f"Error al hacer push a GitHub: {e}")
+
+
+def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=True):
+
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+    # --- Cargar modelo ---
+    model_path = os.path.join(subdir, "model.pt")
+    if not os.path.exists(model_path):
+        print(f"No se encontró model.pt en {subdir}")
+        return
+
+    model = load_model(model_path, config).to(device).double()
+    model.eval()
+
+    summary_path = os.path.join(subdir, "summary.json")
+    with open(summary_path, "r") as f:
+        summary = json.load(f)
+
+    lambda_true = summary["lambda_true"]
+    model_title = f"{summary['architecture']}_{summary['depth']}x{summary['width']}_{summary['optimizer']}_{summary['method']}"
+    elapsed_minutes = summary.get("elapsed_time", 0) / 60
+
+    dim = config["dimension"]
+    domain_lb = np.array(config["domain_lb"])
+    domain_ub = np.array(config["domain_ub"])
+    n_eval_points = 10000
+
+    # --- Puntos de evaluación ---
+    if dim == 1:
+        x_eval = np.linspace(domain_lb[0], domain_ub[0], n_eval_points).reshape(-1, 1)
+    else:
+        samples = lhs(dim, n_eval_points)
+        x_eval = domain_lb + (domain_ub - domain_lb) * samples
+
+    x_tensor = torch.tensor(x_eval, dtype=torch.float64, device=device, requires_grad=True)
+
+    # --- Evaluar u_pred ---
+    with torch.no_grad():
+        u_pred_tensor = model(x_tensor)
+    u_true = exact_u(x_eval)
+
+    u_pred = u_pred_tensor.cpu().numpy()
+    u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(len(u_pred))
+    u_true = u_true / np.linalg.norm(u_true) * np.sqrt(len(u_true))
+    u_pred *= np.sign(np.mean(u_pred * u_true))
+
+    # --- Calcular lambda_pred ---
+    x_tensor.requires_grad_(True)
+    u_pred_tensor = model(x_tensor)
+    grad_u = torch.autograd.grad(
+        outputs=u_pred_tensor,
+        inputs=x_tensor,
+        grad_outputs=torch.ones_like(u_pred_tensor),
+        create_graph=True
+    )[0]
+    lambda_pred_tensor = grad_u.pow(2).sum(dim=1).mean() / u_pred_tensor.pow(2).mean()
+    lambda_pred = lambda_pred_tensor.detach().cpu().item()
+
+    # --- Métricas ---
+    L2_error = np.sqrt(np.mean((u_true - u_pred) ** 2))
+    Linf_error = np.max(np.abs(u_true - u_pred))
+    lambda_abs_error = abs(lambda_pred - lambda_true)
+    lambda_rel_error = lambda_abs_error / abs(lambda_true)
+
+    # --- Directorio para guardar ---
+    results_dir = os.path.join(subdir, "evaluation_results")
+    os.makedirs(results_dir, exist_ok=True)
+
+    # --- Plot eigenfunction (1D) ---
+    if dim == 1:
+        plt.figure()
+        plt.plot(x_eval, u_true, '--', label="u_true")
+        plt.plot(x_eval, u_pred, ':', label="u_pred")
+        plt.xlabel("x")
+        plt.ylabel("u(x)")
+        plt.grid(True)
+        plt.legend()
+        plt.title("Eigenfunction (1D)")
+        plt.tight_layout()
+        plt.savefig(os.path.join(results_dir, "eigenfunction_comparison_1D.png"), dpi=300)
+        plt.close()
+
+    # --- Heatmaps (2D) ---
+    if dim == 2:
+        import matplotlib.tri as tri
+        tri_obj = tri.Triangulation(x_eval[:, 0], x_eval[:, 1])
+        for arr, name in zip([u_true, u_pred, np.abs(u_true - u_pred)],
+                             ["u_true", "u_pred", "error"]):
+            plt.figure()
+            plt.tricontourf(tri_obj, arr.flatten(), 100)
+            plt.colorbar()
+            plt.title(name)
+            plt.tight_layout()
+            plt.savefig(os.path.join(results_dir, f"{name}_heatmap_2D.png"), dpi=300)
+            plt.close()
+
+    # --- Density plot (tu estilo) ---
+    u_list = [u_true, u_pred]
+    data_labels = ['u_true', 'u_pred']
+    min_u = min(np.min(u_true), np.min(u_pred))
+    max_u = max(np.max(u_true), np.max(u_pred))
+    N = 100
+    x_d = np.linspace(min_u, max_u, N+1)
+    delta_x = (max_u - min_u) / N
+    density_list = []
+    for u in u_list:
+        density = np.zeros(N+1)
+        for i in range(u.shape[0]):
+            value = u[i, 0]
+            j = min(N, max(0, int(round((value - min_u) / delta_x))))
+            density[j] += 1
+        density_list.append(density)
+
+    max_d = max(map(np.max, density_list))
+    datas = [np.stack((x_d, d / max_d), axis=1) for d in density_list]
+
+    plt.figure()
+    for data, label in zip(datas, data_labels):
+        plt.plot(data[:, 0], data[:, 1], label=label)
+    plt.xlabel("u")
+    plt.ylabel("density")
+    plt.legend()
+    plt.grid(True)
+    plt.tight_layout()
+    plt.savefig(os.path.join(results_dir, f"density_plot_dim{dim}.png"), dpi=300)
+    plt.close()
+
+    # --- Guardar resumen ---
+    results = {
+        "model": model_title,
+        "lambda_pred": lambda_pred,
+        "lambda_true": lambda_true,
+        "lambda_abs_error": lambda_abs_error,
+        "lambda_rel_error": lambda_rel_error,
+        "L2_error": L2_error,
+        "Linf_error": Linf_error,
+        "elapsed_minutes": round(elapsed_minutes, 2)
+    }
+
+    with open(os.path.join(results_dir, "results_summary.json"), "w") as f:
+        json.dump(results, f, indent=4)
+
+    print("Evaluación completada:")
+    for k, v in results.items():
+        print(f"  {k}: {v:.6g}" if isinstance(v, float) else f"  {k}: {v}")
+
+    # --- Git (opcional) ---
+    if push_to_git:
+        import subprocess
+        try:
+            subprocess.run(["git", "add", results_dir], check=True)
+            subprocess.run(["git", "commit", "-m", f"Add evaluation results for model {model_title}"], check=True)
+            subprocess.run(["git", "push"], check=True)
+        except subprocess.CalledProcessError as e:
+            print(f"⚠ Git error: {e}")
