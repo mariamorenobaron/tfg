@@ -106,8 +106,9 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
 
     config_path = os.path.join(subdir, "config.py")
     with open(config_path, "r") as f:
-        config = {}
-        exec(f.read(), config)
+        config_dict = {}
+        exec(f.read(), config_dict)
+        config = config_dict["CONFIG"]
 
     model = reconstruct_model(summary,config)
     model.load_state_dict(torch.load(os.path.join(subdir, "model.pt"), map_location=device))
