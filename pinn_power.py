@@ -2,7 +2,7 @@ import torch
 import os
 import json
 import numpy as np
-from utils import sample_lhs, periodic_transform, coor_shift, compute_laplacian
+from utils import sample_lhs, periodic_transform, coor_shift, compute_laplacian, apply_boundary_condition
 
 class PowerMethodPINN:
     def __init__(self, model, config):
@@ -36,20 +36,12 @@ class PowerMethodPINN:
             return periodic_transform(x, k=self.config.get("pbc_k", 1), periods=self.config.get("periods", None))
         return x
 
-    def apply_boundary_condition(self, x, u):
-        g = torch.ones_like(u)
-        lb, ub = self.config["domain_lb"], self.config["domain_ub"]
-        for i in range(x.shape[1]):
-            xi = x[:, i:i+1]
-            g *= (torch.exp(xi - lb[i]) - 1.0) * (torch.exp(-(xi - ub[i])) - 1.0)
-        return g * u
-
     def net_u(self, x):
-        x_input = self.apply_input_transform(x)
+        x_input = self.apply_input_transform_periodic(x)
         x_input = coor_shift(x_input, self.lb, self.ub)
         u_pred = self.model(x_input)
         if not self.config.get("periodic", False):
-            u_pred = self.apply_boundary_condition(x, u_pred)
+            u_pred = apply_boundary_condition(x, u_pred)
         return u_pred
 
     def optimize_one_epoch(self):
@@ -141,7 +133,7 @@ class PowerMethodPINN:
             u_raw = self.model(x_input_shifted)
 
             if not self.config.get("periodic", False):
-                u_pred_tensor = self.apply_boundary_condition(x_tensor, u_raw)
+                u_pred_tensor = apply_boundary_condition(x_tensor, u_raw)
             else:
                 u_pred_tensor = u_raw
 

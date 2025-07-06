@@ -13,6 +13,14 @@ def coor_shift(X, lb, ub):
     X_shift = 2.0 * (X - lb) / (ub - lb) - 1.0
     return X_shift
 
+def apply_boundary_condition(self, x, u):
+    g = torch.ones_like(u)
+    lb, ub = self.config["domain_lb"], self.config["domain_ub"]
+    for i in range(x.shape[1]):
+        xi = x[:, i:i + 1]
+        g *= (torch.exp(xi - lb[i]) - 1.0) * (torch.exp(-(xi - ub[i])) - 1.0)
+    return g * u
+
 
 def sample_lhs(lb, ub, N, d):
     return  lb + (ub-lb)*lhs(d, N)

@@ -10,7 +10,7 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from pyDOE import lhs
-from utils import load_model
+from utils import sample_lhs, periodic_transform, coor_shift, apply_boundary_condition
 
 def moving_average(x, w):
     return np.convolve(x, np.ones(w) / w, mode='valid')
@@ -135,8 +135,15 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
 
     # --- Evaluar u_pred ---
     with torch.no_grad():
-        u_pred_tensor = model(x_tensor)
-    u_true = config["exact_u"](x_eval)
+        x_input = coor_shift(x_tensor, config["domain_lb"], config["domain_ub"])
+        u_raw = model(x_input)
+
+        if not config.get("periodic", False):
+            u_pred_tensor = apply_boundary_condition(x_tensor, u_raw)
+        else:
+            u_pred_tensor = u_raw
+
+    u_true =    config["exact_u"](x_eval)
 
     u_pred = u_pred_tensor.cpu().numpy()
     u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(len(u_pred))
