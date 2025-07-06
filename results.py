@@ -243,7 +243,6 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
 
             elif "lambda" in k:
                 print(f"  {k}: {v:.8f}")
-
             else:
                 print(f"  {k}: {v}")
         else:
