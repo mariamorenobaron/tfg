@@ -114,7 +114,7 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
     model.load_state_dict(torch.load(os.path.join(subdir, "model.pt"), map_location=device))
     model = model.to(device).double()
 
-    lambda_true = summary["lambda_true"]
+    lambda_true = float(summary["lambda_true"])
     model_title = f"{summary['architecture']}_{summary['depth']}x{summary['width']}_{summary['optimizer']}_{summary['method']}"
     elapsed_minutes = summary.get("elapsed_time", 0) / 60
 
