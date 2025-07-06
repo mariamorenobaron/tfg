@@ -94,3 +94,4 @@ def run_model(config, save_dir='numerical_experiments'):
         maybe_push_to_git(run_dir, message= f"Training completed for {base_name} in {elapsed:.2f} seconds.")
 
     return pinn
+

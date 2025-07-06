@@ -100,12 +100,13 @@ def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=Tru
         print(f"No se encontró model.pt en {subdir}")
         return
 
-    model = torch.load(os.path.join(subdir, "model.pt"), map_location=device)
-    model = model.to(device).double()
-
     summary_path = os.path.join(subdir, "summary.json")
     with open(summary_path, "r") as f:
         summary = json.load(f)
+
+    model = reconstruct_model(summary)
+    model.load_state_dict(torch.load(os.path.join(subdir, "model.pt"), map_location=device))
+    model = model.to(device).double()
 
     lambda_true = summary["lambda_true"]
     model_title = f"{summary['architecture']}_{summary['depth']}x{summary['width']}_{summary['optimizer']}_{summary['method']}"
@@ -234,3 +235,16 @@ def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=Tru
             subprocess.run(["git", "push"], check=True)
         except subprocess.CalledProcessError as e:
             print(f"⚠ Git error: {e}")
+
+def reconstruct_model(arch_config):
+    arch = arch_config["architecture"]
+    input_dim = arch_config["input_dim"]
+    depth = arch_config["depth"]
+    width = arch_config["width"]
+
+    if arch == "MLP":
+        return MLP([input_dim] + [width]*depth + [1])
+    elif arch == "ResNet":
+        return ResNet(in_num=input_dim, out_num=1, block_layers=[width]*2, block_num=depth)
+    else:
+        raise ValueError("Unknown architecture type")
