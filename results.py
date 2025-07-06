@@ -91,7 +91,7 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
             print(f"Error al hacer push a GitHub: {e}")
 
 
-def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=True):
+def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=True, dimension = None):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -104,7 +104,7 @@ def evaluate_model_and_generate_results(subdir, config, exact_u, push_to_git=Tru
     with open(summary_path, "r") as f:
         summary = json.load(f)
 
-    model = reconstruct_model(summary)
+    model = reconstruct_model(summary,dimension)
     model.load_state_dict(torch.load(os.path.join(subdir, "model.pt"), map_location=device))
     model = model.to(device).double()
 
