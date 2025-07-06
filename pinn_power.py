@@ -31,7 +31,7 @@ class PowerMethodPINN:
         self.optimizer = None
         self.run_dir = config["save_dir"]
 
-    def apply_input_transform(self, x):
+    def apply_input_transform_periodic(self, x):
         if self.config.get("periodic", False):
             return periodic_transform(x, k=self.config.get("pbc_k", 1), periods=self.config.get("periods", None))
         return x
@@ -136,7 +136,7 @@ class PowerMethodPINN:
 
         x_tensor = torch.tensor(x_eval, dtype=torch.float64, device=self.device)
         with torch.no_grad():
-            x_input = self.apply_input_transform(x_tensor)
+            x_input = self.apply_input_transform_periodic(x_tensor)
             x_input_shifted = coor_shift(x_input, self.lb, self.ub)
             u_raw = self.model(x_input_shifted)
 
