@@ -238,10 +238,12 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
     print("Evaluation:")
     for k, v in results.items():
         if isinstance(v, float):
-            if "lambda" in k:
-                print(f"  {k}: {v:.8f}")
-            elif "error" in k:
+            if "error" in k:
                 print(f"  {k}: {v:.2e}")
+
+            elif "lambda" in k:
+                print(f"  {k}: {v:.8f}")
+
             else:
                 print(f"  {k}: {v}")
         else:
