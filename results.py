@@ -245,7 +245,7 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
 
 def reconstruct_model(arch_config, config):
     arch = config["architecture"]
-    input_dim = config["input_dim"]
+    input_dim = config["dimension"]
     depth = arch_config["depth"]
     width = arch_config["width"]
 
