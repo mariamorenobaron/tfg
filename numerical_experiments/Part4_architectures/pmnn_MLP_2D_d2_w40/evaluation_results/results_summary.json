@@ -1,0 +1,10 @@
+{
+    "model": "MLP_2x40_adam_pmnn",
+    "lambda_pred": 80.26257766459732,
+    "lambda_true": 80.26079119782128,
+    "lambda_abs_error": 0.0017864667760392194,
+    "lambda_rel_error": 2.2258275172444526e-05,
+    "L2_error": 0.009660656897953864,
+    "Linf_error": 0.020969217063748102,
+    "elapsed_minutes": 0.0
+}
