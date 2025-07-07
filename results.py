@@ -226,10 +226,10 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
     results_formatted = {}
     for k, v in results.items():
         if isinstance(v, float):
-            if "lambda" in k:
-                results_formatted[k] = f"{v:.8f}"
-            elif "error" in k:
+            if "error" in k:
                 results_formatted[k] = f"{v:.2e}"
+            elif "lambda" in k:
+                results_formatted[k] = f"{v:.8f}"
             elif "minutes" in k:
                 results_formatted[k] = f"{v:.4f}"
             else:
