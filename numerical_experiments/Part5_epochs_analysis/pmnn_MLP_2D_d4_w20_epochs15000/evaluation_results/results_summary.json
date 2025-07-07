@@ -2,9 +2,9 @@
     "model": "MLP_4x20_adam_pmnn",
     "lambda_pred": "80.25911833",
     "lambda_true": "80.26079120",
-    "lambda_abs_error": "0.00167287",
-    "lambda_rel_error": "0.00002084",
-    "L2_error": "1.05e-02",
-    "Linf_error": "2.20e-02",
+    "lambda_abs_error": "1.67e-03",
+    "lambda_rel_error": "2.08e-05",
+    "L2_error": "1.06e-02",
+    "Linf_error": "2.18e-02",
     "elapsed_minutes": "4.8029"
 }
