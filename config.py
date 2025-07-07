@@ -8,10 +8,10 @@ CONFIG = {
     "domain_ub": np.ones(d),
     "M": 100,
 
-    "architecture": "MLP",     # "MLP" or "ResNet"
+    "architecture": "MLP",                  # "MLP" or "ResNet"
     "optimizer": "adam",
-    "method": "pmnn",                      # "pmnn" or "ipmnn"
-    "depth": 4,
+    "method": "pmnn",                       # "pmnn" or "ipmnn"
+    "depth": 4,                             # ResNet block number or MLP depth(number of hidden layers)
     "width": 20,
     "push_to_git" : True,
 
@@ -20,7 +20,7 @@ CONFIG = {
     "n_train": 20000,
     "early_stopping": False,
     "tolerance": 1e-6,
-    "use_seed": False,
+    "use_seed": True,
     "seed": 2,
 
     "lambda_true": 100 - d * np.pi**2,

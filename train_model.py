@@ -5,9 +5,9 @@ import torch
 import tracemalloc
 import numpy as np
 import subprocess
-from model import MLP, ResNet
+from models import MLP, ResNet
 from pinn_power import PowerMethodPINN
-from pinn_invpower import InversePowerMethodPINN
+from pinn_inverse_power import InversePowerMethodPINN
 from utils import maybe_push_to_git
 
 def run_model(config, save_dir='numerical_experiments'):

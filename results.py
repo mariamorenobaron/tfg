@@ -1,7 +1,5 @@
 import time
-import pandas as pd
-from config import CONFIG
-from model import MLP, ResNet
+from models import MLP, ResNet
 from pinn_power import PowerMethodPINN
 import subprocess
 import os
@@ -9,8 +7,7 @@ import json
 import torch
 import numpy as np
 import matplotlib.pyplot as plt
-from pyDOE import lhs
-from utils import sample_lhs, periodic_transform, coor_shift, apply_boundary_condition
+from utils import sample_lhs, coor_shift, apply_boundary_condition
 
 def moving_average(x, w):
     return np.convolve(x, np.ones(w) / w, mode='valid')
@@ -44,7 +41,7 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
 
                 if smooth_lambda_error:
                     lambda_errors_smoothed = moving_average(lambda_errors, w=20)
-                    epochs_smoothed = epochs[19:]  # recortar los primeros w-1
+                    epochs_smoothed = epochs[19:]
                 else:
                     lambda_errors_smoothed = lambda_errors
                     epochs_smoothed = epochs
@@ -110,49 +107,46 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
         exec(f.read(), config_dict)
         config = config_dict["CONFIG"]
 
-    model = reconstruct_model(summary,config)
-    model.load_state_dict(torch.load(os.path.join(subdir, "model.pt"), map_location=device))
+    model = reconstruct_model(summary, config)
+    model.load_state_dict(torch.load(model_path, map_location=device))
     model = model.to(device).double()
 
     lambda_true = float(summary["lambda_true"])
     model_title = f"{summary['architecture']}_{summary['depth']}x{summary['width']}_{summary['optimizer']}_{summary['method']}"
-    elapsed_minutes = summary.get("elapsed_time", 0) / 60
+    elapsed_minutes = summary.get("time_seconds", 0) / 60
 
     dim = config["dimension"]
     domain_lb = np.array(config["domain_lb"])
     domain_ub = np.array(config["domain_ub"])
     n_eval_points = 10000
 
-    # --- Puntos de evaluación ---
-
     if dim == 1:
         x_eval = np.linspace(domain_lb[0], domain_ub[0], n_eval_points).reshape(-1, 1)
     else:
-        samples = lhs(dim, n_eval_points)
-        x_eval = domain_lb + (domain_ub - domain_lb) * samples
+        x_eval = sample_lhs(domain_lb, domain_ub, n_eval_points, dim)
 
-    x_tensor = torch.tensor(x_eval, dtype=torch.float64, device=device, requires_grad=True)
+    x_tensor = torch.tensor(x_eval, dtype=torch.float64, device=device)
 
-    # --- Evaluar u_pred ---
     with torch.no_grad():
-        x_input = coor_shift(x_tensor, config["domain_lb"], config["domain_ub"])
+        lb = torch.tensor(domain_lb, dtype=torch.float64, device=device)
+        ub = torch.tensor(domain_ub, dtype=torch.float64, device=device)
+        x_input = coor_shift(x_tensor, lb, ub)
         u_raw = model(x_input)
 
         if not config.get("periodic", False):
-            u_pred_tensor = apply_boundary_condition(config,x_tensor, u_raw)
+            u_pred_tensor = apply_boundary_condition(config, x_tensor, u_raw)
         else:
             u_pred_tensor = u_raw
 
-    u_true =    config["exact_u"](x_eval)
-
+    u_true = config["exact_u"](x_eval)
     u_pred = u_pred_tensor.cpu().numpy()
+
     u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(len(u_pred))
     u_true = u_true / np.linalg.norm(u_true) * np.sqrt(len(u_true))
     u_pred *= np.sign(np.mean(u_pred * u_true))
 
     lambda_pred = float(summary["lambda_pred"]) if "lambda_pred" in summary else None
 
-    # --- Metrics ---
     L2_error = np.sqrt(np.mean((u_true - u_pred) ** 2))
     Linf_error = np.max(np.abs(u_true - u_pred))
     lambda_abs_error = abs(lambda_pred - lambda_true)
@@ -161,7 +155,6 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
     results_dir = os.path.join(subdir, "evaluation_results")
     os.makedirs(results_dir, exist_ok=True)
 
-    # --- Plot eigenfunction (1D) ---
     if dim == 1:
         plt.figure()
         plt.plot(x_eval, u_true, '--', label="u_true")
@@ -175,7 +168,6 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
         plt.savefig(os.path.join(results_dir, "eigenfunction_comparison_1D.png"), dpi=300)
         plt.close()
 
-    # --- Heatmaps (2D) ---
     if dim == 2:
         import matplotlib.tri as tri
         tri_obj = tri.Triangulation(x_eval[:, 0], x_eval[:, 1])
@@ -189,17 +181,16 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
             plt.savefig(os.path.join(results_dir, f"{name}_heatmap_2D.png"), dpi=300)
             plt.close()
 
-    # --- Density plot (tu estilo) ---
     u_list = [u_true, u_pred]
     data_labels = ['u_true', 'u_pred']
     min_u = min(np.min(u_true), np.min(u_pred))
     max_u = max(np.max(u_true), np.max(u_pred))
     N = 100
-    x_d = np.linspace(min_u, max_u, N+1)
+    x_d = np.linspace(min_u, max_u, N + 1)
     delta_x = (max_u - min_u) / N
     density_list = []
     for u in u_list:
-        density = np.zeros(N+1)
+        density = np.zeros(N + 1)
         for i in range(u.shape[0]):
             value = u[i, 0]
             j = min(N, max(0, int(round((value - min_u) / delta_x))))
@@ -211,7 +202,7 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
 
     plt.figure()
     for data, label in zip(datas, data_labels):
-        plt.plot(data[:, 0], data[:, 1],'--' ,label=label)
+        plt.plot(data[:, 0], data[:, 1], '--', label=label)
     plt.xlabel("u")
     plt.ylabel("density")
     plt.legend()
@@ -220,7 +211,6 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
     plt.savefig(os.path.join(results_dir, f"density_plot_dim{dim}.png"), dpi=300)
     plt.close()
 
-    # --- Guardar resumen ---
     results = {
         "model": model_title,
         "lambda_pred": lambda_pred,
@@ -229,26 +219,31 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
         "lambda_rel_error": lambda_rel_error,
         "L2_error": L2_error,
         "Linf_error": Linf_error,
-        "elapsed_minutes": round(elapsed_minutes, 2)
+        "elapsed_minutes": elapsed_minutes
     }
 
-    with open(os.path.join(results_dir, "results_summary.json"), "w") as f:
-        json.dump(results, f, indent=4)
-
-    print("Evaluation:")
+    # --- Formateo para JSON ---
+    results_formatted = {}
     for k, v in results.items():
         if isinstance(v, float):
-            if "error" in k:
-                print(f"  {k}: {v:.2e}")
-
-            elif "lambda" in k:
-                print(f"  {k}: {v:.8f}")
+            if "lambda" in k:
+                results_formatted[k] = f"{v:.8f}"
+            elif "error" in k:
+                results_formatted[k] = f"{v:.2e}"
+            elif "minutes" in k:
+                results_formatted[k] = f"{v:.4f}"
             else:
-                print(f"  {k}: {v}")
+                results_formatted[k] = f"{v}"
         else:
-            print(f"  {k}: {v}")
+            results_formatted[k] = v
 
-    # --- Git (opcional) ---
+    with open(os.path.join(results_dir, "results_summary.json"), "w") as f:
+        json.dump(results_formatted, f, indent=4)
+
+    print("Evaluation:")
+    for k, v in results_formatted.items():
+        print(f"  {k}: {v}")
+
     if push_to_git:
         import subprocess
         try:
@@ -257,6 +252,7 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
             subprocess.run(["git", "push"], check=True)
         except subprocess.CalledProcessError as e:
             print(f"⚠ Git error: {e}")
+
 
 def reconstruct_model(arch_config, config):
     arch = config["architecture"]
