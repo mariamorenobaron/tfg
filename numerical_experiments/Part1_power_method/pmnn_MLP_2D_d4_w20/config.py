@@ -1,26 +1,33 @@
-# Configuration file for the training run
-dimension = 2
-domain_lb = [0. 0.]
-domain_ub = [1. 1.]
-M = 100
-architecture = MLP
-optimizer = adam
-method = pmnn
-depth = 4
-width = 20
-push_to_git = True
-adam_steps = 50000
-adam_lr = 0.001
-n_train = 20000
-early_stopping = False
-tolerance = 1e-06
-use_seed = False
-seed = 2
-lambda_true = 80.26079119782128
-exact_u = <function <lambda> at 0x7e449c899120>
-periodic = False
-pbc_k = 1
-periods = None
-alpha = 0.0
-save_dir = numerical_experiments/Part2_inverse_power_method/pmnn_MLP_2D_d4_w20
-input_dim = 2
+import numpy as np
+
+d = 2
+
+CONFIG = {
+    "dimension": d,
+    "domain_lb": np.zeros(d),
+    "domain_ub": np.ones(d),
+    "M": 100,
+
+    "architecture": "MLP",     # "MLP" or "ResNet"
+    "optimizer": "adam",
+    "method": "pmnn",                      # "pmnn" or "ipmnn"
+    "depth": 4,
+    "width": 20,
+    "push_to_git" : True,
+
+    "adam_steps": 50000,
+    "adam_lr": 1e-3,
+    "n_train": 20000,
+    "early_stopping": False,
+    "tolerance": 1e-6,
+    "use_seed": False,
+    "seed": 2,
+
+    "lambda_true": 100 - d * np.pi ** 2,
+    "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
+
+    "periodic": False,
+    "pbc_k": 1,
+    "periods": None,
+    "alpha": 0.0    # component for shifted inverse power method
+}

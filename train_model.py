@@ -66,12 +66,6 @@ def run_model(config, save_dir='numerical_experiments'):
     # Save model
     torch.save(pinn.model.state_dict(), os.path.join(run_dir, "model.pt"))
 
-    # Save config.py file as a copy in the run directory
-    config_path = os.path.join(run_dir, "config.py")
-    with open(config_path, "w") as f:
-        f.write("# Configuration file for the training run\n")
-        for key, value in config.items():
-            f.write(f"{key} = {value}\n")
 
 
     # Save training summary
