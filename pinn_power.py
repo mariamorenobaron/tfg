@@ -65,8 +65,6 @@ class PowerMethodPINN:
         denominator = torch.sum(u_prev ** 2) + 1e-10
         self.lambda_ = numerator / denominator
 
-        #it =+1
-        #if it % 100 == 0 or it == self.config["adam_steps"] - 1:
         self.loss_history.append((loss.item(), tmp_loss.item()))
         self.lambda_history.append(self.lambda_.item())
         self.training_curve.append({
@@ -80,6 +78,7 @@ class PowerMethodPINN:
             self.min_loss = tmp_loss.item()
             self.best_lambda = self.lambda_.item()
             self.best_model_state = self.model.state_dict()
+            self.best_iteration = len(self.lambda_history)
 
         return loss, tmp_loss, self.lambda_
 
@@ -107,6 +106,8 @@ class PowerMethodPINN:
 
 
         print(f"Finished Adam. Best λ = {self.best_lambda:.6f} | Min Loss = {self.min_loss:.4e}")
+        if self.best_model_state is not None:
+            self.model.load_state_dict(self.best_model_state)
 
     def save_training_curve(self):
         path = os.path.join(self.run_dir, "training_curve.json")

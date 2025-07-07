@@ -1,6 +1,6 @@
 import numpy as np
 
-d = 5
+d = 1
 
 CONFIG = {
     "dimension": d,
@@ -10,20 +10,20 @@ CONFIG = {
 
     "architecture": "MLP",     # "MLP" or "ResNet"
     "optimizer": "adam",
-    "method": "ipmnn",                      # "pmnn" or "ipmnn"
+    "method": "pmnn",                      # "pmnn" or "ipmnn"
     "depth": 4,
-    "width": 40,
+    "width": 20,
     "push_to_git" : True,
 
     "adam_steps": 50000,
     "adam_lr": 1e-3,
-    "n_train": 50000,
+    "n_train": 10000,
     "early_stopping": False,
     "tolerance": 1e-6,
     "use_seed": False,
     "seed": 2,
 
-    "lambda_true": d * np.pi**2,
+    "lambda_true": 100 - d * np.pi ** 2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
 
     "periodic": False,

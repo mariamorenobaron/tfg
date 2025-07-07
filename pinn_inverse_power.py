@@ -88,6 +88,7 @@ class InversePowerMethodPINN:
             self.loss = loss
             self.best_lambda = lambda_val
             self.best_model_state = self.model.state_dict()
+            self.best_iteration = len(self.lambda_history)
 
         return loss, temporal_loss, lambda_val
 
@@ -117,6 +118,8 @@ class InversePowerMethodPINN:
                     break
 
         print(f"Best λ = {self.best_lambda:.8f} | Min Loss = {self.min_loss:.4e}")
+        if self.best_model_state is not None:
+            self.model.load_state_dict(self.best_model_state)
 
     def save_training_curve(self):
         path = os.path.join(self.config["save_dir"], "training_curve.json")

@@ -79,6 +79,7 @@ def run_model(config, save_dir='numerical_experiments'):
         "data_points": config.get("n_train", None),
         "lambda_pred": float(pinn.best_lambda),
         "lambda_true": float(config["lambda_true"]),
+        "best_iteration": pinn.best_iteration if hasattr(pinn, 'best_iteration') else None,
         "min_loss": float(pinn.min_loss),
         "time_seconds": elapsed,
         "peak_ram_MB": peak / 1024 / 1024,
