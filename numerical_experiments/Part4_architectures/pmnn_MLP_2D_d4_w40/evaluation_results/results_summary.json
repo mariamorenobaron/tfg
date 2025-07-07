@@ -1,10 +1,10 @@
 {
     "model": "MLP_4x40_adam_pmnn",
-    "lambda_pred": 80.26043006085628,
-    "lambda_true": 80.26079119782128,
-    "lambda_abs_error": 0.00036113696499739945,
-    "lambda_rel_error": 4.49954404395658e-06,
-    "L2_error": 0.0013761351101094067,
-    "Linf_error": 0.004865098201240592,
-    "elapsed_minutes": 0.0
+    "lambda_pred": "80.26043006",
+    "lambda_true": "80.26079120",
+    "lambda_abs_error": "0.00036114",
+    "lambda_rel_error": "0.00000450",
+    "L2_error": "1.37e-03",
+    "Linf_error": "4.92e-03",
+    "elapsed_minutes": "61.6600"
 }
