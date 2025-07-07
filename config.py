@@ -1,6 +1,6 @@
 import numpy as np
 
-d = 2
+d = 10
 
 CONFIG = {
     "dimension": d,
@@ -8,19 +8,19 @@ CONFIG = {
     "domain_ub": np.ones(d),
     "M": 100,
 
-    "architecture": "MLP",                  # "MLP" or "ResNet"
+    "architecture": "MLP",     # "MLP" or "ResNet"
     "optimizer": "adam",
-    "method": "pmnn",                       # "pmnn" or "ipmnn"
-    "depth": 4,                             # ResNet block number or MLP depth(number of hidden layers)
-    "width": 20,
+    "method": "pmnn",                      # "pmnn" or "ipmnn"
+    "depth": 4,
+    "width": 80,
     "push_to_git" : True,
 
-    "adam_steps": 50000,
+    "adam_steps": 100000,
     "adam_lr": 1e-3,
-    "n_train": 20000,
+    "n_train": 100000,
     "early_stopping": False,
     "tolerance": 1e-6,
-    "use_seed": True,
+    "use_seed": False,
     "seed": 2,
 
     "lambda_true": 100 - d * np.pi**2,
