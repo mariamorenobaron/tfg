@@ -5,11 +5,13 @@
     "optimizer": "adam",
     "method": "ipmnn",
     "epochs": 50000,
-    "lambda_pred": 9.869604395422055,
+    "data_points": 10000,
+    "lambda_pred": 9.869604403625763,
     "lambda_true": 9.869604401089358,
-    "min_loss": 5.269665607796961e-13,
-    "time_seconds": 817.8064608573914,
-    "peak_ram_MB": 79.6987361907959,
+    "best_iteration": 27856,
+    "min_loss": 6.404414304973451e-13,
+    "time_seconds": 818.0565180778503,
+    "peak_ram_MB": 79.70663166046143,
     "peak_gpu_MB": 78.5947265625,
     "device": "cuda"
 }
