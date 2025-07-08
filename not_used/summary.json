@@ -8,9 +8,10 @@
     "data_points": 20000,
     "lambda_pred": 80.25911833082984,
     "lambda_true": 80.26079119782128,
+    "best_iteration": 11158,
     "min_loss": 2.7182758226745586e-13,
-    "time_seconds": 288.17655849456787,
-    "peak_ram_MB": 67.27865791320801,
+    "time_seconds": 286.4147574901581,
+    "peak_ram_MB": 67.31403732299805,
     "peak_gpu_MB": 658.88671875,
     "device": "cuda"
 }
