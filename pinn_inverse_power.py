@@ -135,8 +135,7 @@ class InversePowerMethodPINN:
         if dim == 1:
             x_eval = np.linspace(domain_lb[0], domain_ub[0], n_eval_points).reshape(-1, 1)
         else:
-            from pyDOE import lhs
-            samples = lhs(dim, n_eval_points)
+            samples = sample_lhs(domain_lb, domain_ub, n_eval_points, dim)
             x_eval = domain_lb + (domain_ub - domain_lb) * samples
 
         x_eval_tensor = torch.tensor(x_eval, dtype=torch.float64, device=self.device)
