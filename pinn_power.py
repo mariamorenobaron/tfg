@@ -21,6 +21,7 @@ class PowerMethodPINN:
         self.min_loss = float("inf")
         self.best_lambda = None
         self.best_model_state = None
+        self.best_iteration = None
         self.loss_history = []
         self.lambda_history = []
         self.training_curve = []
@@ -31,11 +32,15 @@ class PowerMethodPINN:
         self.optimizer = None
         self.run_dir = config["save_dir"]
 
-        # 👈 NUEVO: Error en norma infinito
         self.u_infty_history = []
 
-        # 👈 NUEVO: puntos de testeo y solución exacta
-        self.n_test_points = 10000  # ajusta este número para mayor precisión en 2D
+        if config["dimension"] == 1:
+            self.n_test_points = 2000
+        elif config["dimension"] == 2:
+            self.n_test_points = 20000
+        else:
+            self.n_test_points = 100000
+
         x_test_np = sample_lhs(config["domain_lb"], config["domain_ub"], self.n_test_points, config["dimension"])
         self.x_test = torch.tensor(x_test_np, dtype=torch.float64).to(self.device)
         u_true = config["exact_u"](x_test_np)
@@ -54,7 +59,6 @@ class PowerMethodPINN:
             u_pred = apply_boundary_condition(self.config, x, u_pred)
         return u_pred
 
-    # 👈 NUEVO: calcula u_infty en test points
     def compute_u_infty(self):
         with torch.no_grad():
             x_input = self.apply_input_transform_periodic(self.x_test)
@@ -93,7 +97,6 @@ class PowerMethodPINN:
         self.loss_history.append((loss.item(), tmp_loss.item()))
         self.lambda_history.append(self.lambda_.item())
 
-        # 👈 NUEVO: calcular y registrar u_infty
         u_infty = self.compute_u_infty()
         self.u_infty_history.append(u_infty)
 
