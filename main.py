@@ -6,6 +6,7 @@ import numpy as np
 torch.set_default_dtype(torch.float64)
 import importlib.util
 import os
+import gc
 
 def load_config(config_path):
     assert os.path.exists(config_path), f"No existe el archivo: {config_path}"
@@ -17,30 +18,60 @@ def load_config(config_path):
     return config_module.CONFIG
 
 if __name__ == "__main__":
-    pinn1 = run_model(load_config('numerical_experiments/Part1_power_method/pmnn_MLP_10D_d4_w80/config.py'), save_dir='numerical_experiments/Part1_power_method')
+
+    pinn1 = run_model(load_config('numerical_experiments/Part1_power_method/pmnn_MLP_10D_d4_w80/config.py'),
+                      save_dir='numerical_experiments/Part1_power_method')
     generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/pmnn_MLP_10D_d4_w80/', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/pmnn_MLP_10D_d4_w80/', 100000, push_to_git=True)
 
-    pinn2 = run_model(load_config('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_10D_d4_w80/config.py'), save_dir='numerical_experiments/Part2_inverse_power_method')
+    del pinn1
+    torch.cuda.empty_cache()
+    gc.collect()
+
+    pinn2 = run_model(load_config('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_10D_d4_w80/config.py'),
+                      save_dir='numerical_experiments/Part2_inverse_power_method')
     generate_plots_from_training_and_push('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_10D_d4_w80/', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_10D_d4_w80/', 100000, push_to_git=True)
 
-    pinn3 = run_model(load_config('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_5D_d4_w40/config.py'), save_dir='numerical_experiments/Part2_inverse_power_method')
+    del pinn2
+    torch.cuda.empty_cache()
+    gc.collect()
+
+    pinn3 = run_model(load_config('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_5D_d4_w40/config.py'),
+                      save_dir='numerical_experiments/Part2_inverse_power_method')
     generate_plots_from_training_and_push('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_5D_d4_w40/', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_5D_d4_w40/', 100000, push_to_git=True)
 
-    pinn4 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs5000/config.py'), save_dir='numerical_experiments/Part5_epochs_analysis')
+    del pinn3
+    torch.cuda.empty_cache()
+    gc.collect()
+
+    pinn4 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs5000/config.py'),
+                      save_dir='numerical_experiments/Part5_epochs_analysis')
     generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs5000/', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs5000/', 100000, push_to_git=True)
 
+    del pinn4
+    torch.cuda.empty_cache()
+    gc.collect()
 
-    pinn5 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/ipmnn_MLP_2D_d4_w20_epochs15000/config.py'), save_dir='numerical_experiments/Part5_epochs_analysis')
+    pinn5 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/ipmnn_MLP_2D_d4_w20_epochs15000/config.py'),
+                      save_dir='numerical_experiments/Part5_epochs_analysis')
     generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/ipmnn_MLP_2D_d4_w20_epochs15000/', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/ipmnn_MLP_2D_d4_w20_epochs15000/', 100000, push_to_git=True)
 
-    pinn6 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/ipmnn_MLP_1D_d4_w20_epochs25000/config.py'), save_dir='numerical_experiments/Part5_epochs_analysis')
+    del pinn5
+    torch.cuda.empty_cache()
+    gc.collect()
+
+    pinn6 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/ipmnn_MLP_1D_d4_w20_epochs25000/config.py'),
+                      save_dir='numerical_experiments/Part5_epochs_analysis')
     generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/ipmnn_MLP_1D_d4_w20_epochs25000/', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/ipmnn_MLP_1D_d4_w20_epochs25000/', 100000, push_to_git=True)
+
+    del pinn6
+    torch.cuda.empty_cache()
+    gc.collect()
 
 
     #generate_plots_from_training_and_push('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_2D_d4_w20/' ,push_to_git= True)
