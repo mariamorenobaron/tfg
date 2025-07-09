@@ -1,0 +1,11 @@
+{
+    "model": "MLP_4x20_adam_ipmnn",
+    "n_eval_points": 10000,
+    "lambda_pred": "9.86960440",
+    "lambda_true": "9.86960440",
+    "lambda_abs_error": "3.60e-09",
+    "lambda_rel_error": "3.65e-10",
+    "L2_error": "2.57e-06",
+    "Linf_error": "4.74e-06",
+    "elapsed_minutes": "24.2453"
+}

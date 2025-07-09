@@ -1,0 +1,17 @@
+{
+    "architecture": "MLP",
+    "depth": 4,
+    "width": 20,
+    "optimizer": "adam",
+    "method": "ipmnn",
+    "epochs": 50000,
+    "data_points": 10000,
+    "lambda_pred": 9.869604404693657,
+    "lambda_true": 9.869604401089358,
+    "best_iteration": 49830,
+    "min_loss": 3.07216398625178e-12,
+    "time_seconds": 1454.7193636894226,
+    "peak_ram_MB": 87.83109092712402,
+    "peak_gpu_MB": 78.67138671875,
+    "device": "cuda"
+}
