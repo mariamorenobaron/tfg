@@ -14,7 +14,6 @@ class InversePowerMethodPINN:
         x = sample_lhs(config["domain_lb"], config["domain_ub"], config["n_train"], config["dimension"])
         self.x_train = torch.tensor(x, dtype=torch.float64, requires_grad=True).to(self.device)
 
-        # Initial guess for u
         x_np = self.x_train.detach().cpu().numpy()
         u0_np = np.prod([np.sin(np.pi * x_np[:, i]) for i in range(config["dimension"])], axis=0)
         self.u = torch.tensor(u0_np, dtype=torch.float64, device=self.device).unsqueeze(1)
@@ -29,18 +28,24 @@ class InversePowerMethodPINN:
         self.loss_history = []
         self.lambda_history = []
         self.training_curve = []
+        self.u_infty_history = []  #  NUEVO
 
         self.optimizer = None
         self.lb = torch.tensor(config["domain_lb"], dtype=torch.float64).to(self.device)
         self.ub = torch.tensor(config["domain_ub"], dtype=torch.float64).to(self.device)
         self.d = config["dimension"]
 
+        #  NUEVO: puntos de test y solución exacta para u_inf
+        self.n_test_points = 10000
+        x_test_np = sample_lhs(config["domain_lb"], config["domain_ub"], self.n_test_points, self.d)
+        self.x_test = torch.tensor(x_test_np, dtype=torch.float64).to(self.device)
+        u_true = config["exact_u"](x_test_np)
+        self.u_true = u_true / np.linalg.norm(u_true) * np.sqrt(len(u_true))
+
     def apply_input_transform_periodic(self, x):
         if self.config.get("periodic", False):
             return periodic_transform(x, k=self.config.get("pbc_k", 1), periods=self.config.get("periods", None))
         return x
-
-
 
     def net_u(self, x):
         x_input = self.apply_input_transform_periodic(x)
@@ -50,13 +55,26 @@ class InversePowerMethodPINN:
             u_pred = apply_boundary_condition(self.config, x, u_pred)
         return u_pred
 
+    def compute_u_infty(self):  # 👈 NUEVO
+        with torch.no_grad():
+            x_input = self.apply_input_transform_periodic(self.x_test)
+            x_shifted = coor_shift(x_input, self.lb, self.ub)
+            u_pred_tensor = self.model(x_shifted)
+            if not self.config.get("periodic", False):
+                u_pred_tensor = apply_boundary_condition(self.config, self.x_test, u_pred_tensor)
+            u_pred = u_pred_tensor.cpu().numpy()
+            u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(len(u_pred))
+            sign = np.sign(np.mean(u_pred * self.u_true))
+            u_pred *= sign
+            return np.max(np.abs(u_pred - self.u_true))
+
     def optimize_one_epoch(self):
         self.model.train()
         self.optimizer.zero_grad()
 
         u_k = self.net_u(self.x_train)
         alpha = self.config.get("alpha", 0.0)
-        Lu = -compute_laplacian(u_k, self.x_train) - alpha * u_k   # equation: Lu = -∇²u MODIFY IF NEW EQUATION | sifted Lu = -∇²u - α*u
+        Lu = -compute_laplacian(u_k, self.x_train) - alpha * u_k
         Lu_norm = Lu / (torch.norm(Lu, p=2) + 1e-10)
 
         mse_loss_fn = torch.nn.MSELoss(reduction='mean')
@@ -72,15 +90,18 @@ class InversePowerMethodPINN:
 
         temporal_loss = loss.item()
         lambda_val = self.lambda_.item()
+        u_infty = self.compute_u_infty()  # 👈 NUEVO
 
         self.loss_history.append((loss.item(), temporal_loss))
         self.lambda_history.append(lambda_val)
+        self.u_infty_history.append(u_infty)  # 👈 NUEVO
 
         self.training_curve.append({
             "epoch": len(self.lambda_history),
             "loss": float(loss.item()),
             "temporal_loss": float(temporal_loss),
-            "lambda": float(lambda_val)
+            "lambda": float(lambda_val),
+            "u_infty": float(u_infty)  # 👈 NUEVO
         })
 
         if temporal_loss < self.min_loss:
@@ -110,7 +131,6 @@ class InversePowerMethodPINN:
             if it % 1000 == 0 or it == self.config["adam_steps"] - 1:
                 print(f"[{it:05d}] Loss = {temporal_loss:.4e} | λ_est = {lambda_val:.8f} | λ_true = {self.config['lambda_true']:.8f}")
 
-            # Early stopping
             if self.config.get("early_stopping", False):
                 tolerance = self.config.get("tolerance", 1e-6)
                 if temporal_loss < tolerance:
@@ -146,7 +166,7 @@ class InversePowerMethodPINN:
             u_raw = self.model(x_input_shifted)
 
             if not self.config.get("periodic", False):
-                u_pred_tensor = apply_boundary_condition(self.config ,x_eval_tensor, u_raw)
+                u_pred_tensor = apply_boundary_condition(self.config, x_eval_tensor, u_raw)
             else:
                 u_pred_tensor = u_raw
 
@@ -155,7 +175,6 @@ class InversePowerMethodPINN:
 
         u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(u_pred.shape[0])
         u_true = u_true / np.linalg.norm(u_true) * np.sqrt(u_true.shape[0])
-
         sign = np.sign(np.mean(u_pred * u_true))
         u_pred *= sign
 

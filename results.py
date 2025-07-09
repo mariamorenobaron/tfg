@@ -33,12 +33,18 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
                     print(f"Not found lambda true {summary_path}")
                     continue
 
+                # ========= EXTRAER DATOS =========
                 epochs = [entry["epoch"] for entry in data]
                 losses = [entry["loss"] for entry in data]
                 temporal_losses = [entry["temporal_loss"] for entry in data]
                 lambdas = [entry["lambda"] for entry in data]
                 lambda_errors = [abs(l - lambda_true) for l in lambdas]
 
+                # ========= NUEVO: u_infty =========
+                u_infty = [entry.get("u_infty", None) for entry in data]
+                u_infty = [val for val in u_infty if val is not None]
+
+                # ========= SMOOTHING =========
                 if smooth_lambda_error:
                     lambda_errors_smoothed = moving_average(lambda_errors, w=20)
                     epochs_smoothed = epochs[19:]
@@ -53,6 +59,11 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
                 epochs_error_plot = np.array(epochs_smoothed)[idx]
                 lambda_error_plot = np.array(lambda_errors_smoothed)[idx]
 
+                # ========= NUEVO: u_infty plot =========
+                if len(u_infty) > 0:
+                    u_infty_plot = np.array(u_infty)[idx]
+
+                # ========= FUNC PLOT =========
                 def save_plot(x, y, ylabel, title, filename, color='blue', log_y=False):
                     path = os.path.join(subdir, filename)
                     plt.figure(figsize=(5, 4))
@@ -70,9 +81,14 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
                     plt.close()
                     plot_files.append(path)
 
+                # ========= GUARDAR PLOTS =========
                 save_plot(epochs_plot, losses_plot, r"$\mathcal{L}$", "Loss vs Epochs", "loss_vs_epochs.png", color='navy', log_y=True)
                 save_plot(epochs_plot, temporal_plot, r"$\mathcal{L}_{\mathrm{temp}}$", "Temporal Loss vs Epochs", "temporal_loss_vs_epochs.png", color='darkorange', log_y=True)
                 save_plot(epochs_error_plot, lambda_error_plot, r"$|\lambda_{\mathrm{est}} - \lambda_{\mathrm{true}}|$", "Lambda Error vs Epochs", "lambda_error_vs_epochs.png", color='crimson', log_y=True)
+
+                # ========= NUEVO: PLOT u_infty =========
+                if len(u_infty) > 0:
+                    save_plot(epochs_plot, u_infty_plot, r"$u_\infty$", "Max-norm Eigenfunction Error vs Epochs", "u_infty_vs_epochs.png", color='seagreen', log_y=True)
 
             except Exception as e:
                 print(f"Error {subdir}: {e}")
@@ -157,8 +173,8 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
 
     if dim == 1:
         plt.figure()
-        plt.plot(x_eval, u_true, '--', label="u_true")
-        plt.plot(x_eval, u_pred, ':', label="u_pred")
+        plt.plot(x_eval, u_true, '--','navy' ,label="u_true")
+        plt.plot(x_eval, u_pred, ':','seagreen' ,label="u_pred")
         plt.xlabel("x")
         plt.ylabel("u(x)")
         plt.grid(True)
@@ -201,8 +217,9 @@ def evaluate_model_and_generate_results(subdir, push_to_git=True):
     datas = [np.stack((x_d, d / max_d), axis=1) for d in density_list]
 
     plt.figure()
+    color_map = {"u_true": "crimson", "u_pred": "darkorange"}
     for data, label in zip(datas, data_labels):
-        plt.plot(data[:, 0], data[:, 1], '--', label=label)
+        plt.plot(data[:, 0], data[:, 1], '--', label=label, color=color_map.get(label, 'gray'))
     plt.xlabel("u")
     plt.ylabel("density")
     plt.legend()

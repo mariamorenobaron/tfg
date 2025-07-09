@@ -31,6 +31,16 @@ class PowerMethodPINN:
         self.optimizer = None
         self.run_dir = config["save_dir"]
 
+        # 👈 NUEVO: Error en norma infinito
+        self.u_infty_history = []
+
+        # 👈 NUEVO: puntos de testeo y solución exacta
+        self.n_test_points = 10000  # ajusta este número para mayor precisión en 2D
+        x_test_np = sample_lhs(config["domain_lb"], config["domain_ub"], self.n_test_points, config["dimension"])
+        self.x_test = torch.tensor(x_test_np, dtype=torch.float64).to(self.device)
+        u_true = config["exact_u"](x_test_np)
+        self.u_true = u_true / np.linalg.norm(u_true) * np.sqrt(len(u_true))
+
     def apply_input_transform_periodic(self, x):
         if self.config.get("periodic", False):
             return periodic_transform(x, k=self.config.get("pbc_k", 1), periods=self.config.get("periods", None))
@@ -44,12 +54,27 @@ class PowerMethodPINN:
             u_pred = apply_boundary_condition(self.config, x, u_pred)
         return u_pred
 
+    # 👈 NUEVO: calcula u_infty en test points
+    def compute_u_infty(self):
+        with torch.no_grad():
+            x_input = self.apply_input_transform_periodic(self.x_test)
+            x_shifted = coor_shift(x_input, self.lb, self.ub)
+            u_pred_tensor = self.model(x_shifted)
+            if not self.config.get("periodic", False):
+                u_pred_tensor = apply_boundary_condition(self.config, self.x_test, u_pred_tensor)
+            u_pred = u_pred_tensor.cpu().numpy()
+            u_pred = u_pred / np.linalg.norm(u_pred) * np.sqrt(len(u_pred))
+            sign = np.sign(np.mean(u_pred * self.u_true))
+            u_pred *= sign
+            error_inf = np.max(np.abs(u_pred - self.u_true))
+            return error_inf
+
     def optimize_one_epoch(self):
         self.model.train()
         self.optimizer.zero_grad()
 
         u_prev = self.net_u(self.x_train)
-        Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev   # equation: Lu = ∇²u + M*u MODIFY IF NEW EQUATION
+        Lu = compute_laplacian(u_prev, self.x_train) + self.config["M"] * u_prev
 
         mse_loss_fn = torch.nn.MSELoss(reduction='mean')
         tmp_loss = mse_loss_fn(Lu, self.lambda_ * self.u)
@@ -67,11 +92,17 @@ class PowerMethodPINN:
 
         self.loss_history.append((loss.item(), tmp_loss.item()))
         self.lambda_history.append(self.lambda_.item())
+
+        # 👈 NUEVO: calcular y registrar u_infty
+        u_infty = self.compute_u_infty()
+        self.u_infty_history.append(u_infty)
+
         self.training_curve.append({
             "epoch": len(self.lambda_history),
             "loss": float(loss.item()),
             "temporal_loss": float(tmp_loss.item()),
-            "lambda": float(self.lambda_.item())
+            "lambda": float(self.lambda_.item()),
+            "u_infty": float(u_infty)
         })
 
         if tmp_loss.item() < self.min_loss:
@@ -83,17 +114,12 @@ class PowerMethodPINN:
         return loss, tmp_loss, self.lambda_
 
     def optimize_adam(self):
-        self.optimizer = torch.optim.Adam(
-            self.model.parameters(),
-            lr=self.config["adam_lr"]
-        )
+        self.optimizer = torch.optim.Adam(self.model.parameters(), lr=self.config["adam_lr"])
         print("Starting Adam training...")
-
 
         for it in range(self.config["adam_steps"]):
             loss, temporal_loss, lambda_val = self.optimize_one_epoch()
             self.optimizer.step()
-
 
             if it % 1000 == 0 or it == self.config["adam_steps"] - 1:
                 print(f"[{it:05d}] Loss = {temporal_loss:.4e} | λ_est = {lambda_val:.6f} | λ_true = {self.config['lambda_true']:.6f}")
@@ -103,7 +129,6 @@ class PowerMethodPINN:
                 if temporal_loss < tolerance:
                     print(f"[INFO] Early stopping at iteration {it} with loss {temporal_loss:.4e}")
                     break
-
 
         print(f"Finished Adam. Best λ = {self.best_lambda:.6f} | Min Loss = {self.min_loss:.4e}")
         if self.best_model_state is not None:
@@ -133,7 +158,7 @@ class PowerMethodPINN:
             u_raw = self.model(x_input_shifted)
 
             if not self.config.get("periodic", False):
-                u_pred_tensor = apply_boundary_condition(self.config,x_tensor, u_raw)
+                u_pred_tensor = apply_boundary_condition(self.config, x_tensor, u_raw)
             else:
                 u_pred_tensor = u_raw
 
