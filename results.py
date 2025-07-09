@@ -1,6 +1,5 @@
 import time
 from models import MLP, ResNet
-from pinn_power import PowerMethodPINN
 import subprocess
 import os
 import json
@@ -134,10 +133,8 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
     dim = config["dimension"]
     domain_lb = np.array(config["domain_lb"])
     domain_ub = np.array(config["domain_ub"])
-    if dim == 1:
-        x_eval = np.linspace(domain_lb[0], domain_ub[0], n_eval_points).reshape(-1, 1)
-    else:
-        x_eval = sample_lhs(domain_lb, domain_ub, n_eval_points, dim)
+
+    x_eval = sample_lhs(domain_lb, domain_ub, n_eval_points, dim)
 
     x_tensor = torch.tensor(x_eval, dtype=torch.float64, device=device)
 
@@ -183,25 +180,43 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
         plt.close()
 
     if dim == 2:
-        import matplotlib.tri as tri
-        tri_obj = tri.Triangulation(x_eval[:, 0], x_eval[:, 1])
-        for arr, name in zip([u_true, u_pred, np.abs(u_true - u_pred)],
-                             ["u_true", "u_pred", "error"]):
-            plt.figure()
-            plt.tricontourf(tri_obj, arr.flatten(), 100)
-            plt.colorbar()
+        from scipy.interpolate import griddata
+
+        # Crear grilla regular para interpolación
+        x_lin = np.linspace(domain_lb[0], domain_ub[0], 200)
+        y_lin = np.linspace(domain_lb[1], domain_ub[1], 200)
+        X_GRID, Y_GRID = np.meshgrid(x_lin, y_lin)
+
+        # Interpolar valores
+        U_true_interp = griddata(x_eval, u_true.flatten(), (X_GRID, Y_GRID), method='cubic')
+        U_pred_interp = griddata(x_eval, u_pred.flatten(), (X_GRID, Y_GRID), method='cubic')
+        Error_interp = np.abs(U_true_interp - U_pred_interp)
+
+        titles = ["u_true", "u_pred", "error"]
+        arrays = [U_true_interp, U_pred_interp, Error_interp]
+
+        for name, arr in zip(titles, arrays):
+            plt.figure(figsize=(6, 5))
+            contour = plt.contourf(X_GRID, Y_GRID, arr, levels=100, cmap="viridis")
+            plt.colorbar(contour)
             plt.title(name)
+            plt.xlabel("x")
+            plt.ylabel("y")
             plt.tight_layout()
             plt.savefig(os.path.join(results_dir, f"{name}_heatmap_2D.png"), dpi=300)
             plt.close()
 
     u_list = [u_true, u_pred]
     data_labels = ['u_true', 'u_pred']
+
+    # Usa el mismo rango para ambas curvas
     min_u = min(np.min(u_true), np.min(u_pred))
     max_u = max(np.max(u_true), np.max(u_pred))
+
     N = 100
     x_d = np.linspace(min_u, max_u, N + 1)
     delta_x = (max_u - min_u) / N
+
     density_list = []
     for u in u_list:
         density = np.zeros(N + 1)
@@ -211,7 +226,7 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
             density[j] += 1
         density_list.append(density)
 
-    max_d = max(map(np.max, density_list))
+    max_d = max(np.max(d) for d in density_list)
     datas = [np.stack((x_d, d / max_d), axis=1) for d in density_list]
 
     plt.figure()
@@ -219,7 +234,7 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
     linestyle_map = {"u_true": "--", "u_pred": ":"}
 
     for data, label in zip(datas, data_labels):
-        plt.plot(data[:, 0], data[:, 1], linestyle= linestyle_map , label=label, color=color_map.get(label, 'gray'))
+        plt.plot(data[:, 0], data[:, 1], linestyle= linestyle_map.get(label, '-') , label=label, color=color_map.get(label, 'gray'))
     plt.xlabel("u")
     plt.ylabel("density")
     plt.legend()
