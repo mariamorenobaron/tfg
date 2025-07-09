@@ -167,9 +167,15 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
     os.makedirs(results_dir, exist_ok=True)
 
     if dim == 1:
+        # Ordenar x_eval para graficar suavemente
+        sort_idx = np.argsort(x_eval[:, 0])
+        x_sorted = x_eval[sort_idx]
+        u_true_sorted = u_true[sort_idx]
+        u_pred_sorted = u_pred[sort_idx]
+
         plt.figure()
-        plt.plot(x_eval, u_true, linestyle='--', color='navy', label="u_true")
-        plt.plot(x_eval, u_pred, linestyle=':', color='seagreen', label="u_pred")
+        plt.plot(x_sorted, u_true_sorted, linestyle='--', color='navy', label="u_true")
+        plt.plot(x_sorted, u_pred_sorted, linestyle=':', color='seagreen', label="u_pred")
         plt.xlabel("x")
         plt.ylabel("u(x)")
         plt.grid(True)
