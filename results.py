@@ -171,8 +171,8 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
 
     if dim == 1:
         plt.figure()
-        plt.plot(x_eval, u_true, '--','navy' ,label="u_true")
-        plt.plot(x_eval, u_pred, ':','seagreen' ,label="u_pred")
+        plt.plot(x_eval, u_true, linestyle='--', color='navy', label="u_true")
+        plt.plot(x_eval, u_pred, linestyle=':', color='seagreen', label="u_pred")
         plt.xlabel("x")
         plt.ylabel("u(x)")
         plt.grid(True)
@@ -215,9 +215,11 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
     datas = [np.stack((x_d, d / max_d), axis=1) for d in density_list]
 
     plt.figure()
-    color_map = {"u_true": "crimson", "u_pred": "darkorange"}
+    color_map = {"u_true": "black", "u_pred": "steelblue"}
+    linestyle_map = {"u_true": "--", "u_pred": ":"}
+
     for data, label in zip(datas, data_labels):
-        plt.plot(data[:, 0], data[:, 1], '--', label=label, color=color_map.get(label, 'gray'))
+        plt.plot(data[:, 0], data[:, 1], linestyle= linestyle_map , label=label, color=color_map.get(label, 'gray'))
     plt.xlabel("u")
     plt.ylabel("density")
     plt.legend()
