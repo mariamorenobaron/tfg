@@ -1,0 +1,17 @@
+{
+    "architecture": "ResNet",
+    "depth": 2,
+    "width": 20,
+    "optimizer": "adam",
+    "method": "pmnn",
+    "epochs": 50000,
+    "data_points": 20000,
+    "lambda_pred": 80.2606200757485,
+    "lambda_true": 80.26079119782128,
+    "best_iteration": 39948,
+    "min_loss": 3.375720252413583e-14,
+    "time_seconds": 1543.3991708755493,
+    "peak_ram_MB": 90.35500526428223,
+    "peak_gpu_MB": 393.70068359375,
+    "device": "cuda"
+}
