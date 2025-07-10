@@ -8,11 +8,11 @@ CONFIG = {
     "domain_ub": np.ones(d),
     "M": 100,
 
-    "architecture": "ResNet",     # "MLP" or "ResNet"
+    "architecture": "MLP",     # "MLP" or "ResNet"
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
-    "depth": 2,     # number of blocks in ResNet or number of hidden layers in MLP
-    "width": 40,
+    "depth": 8,
+    "width": 80,
     "push_to_git" : True,
 
     "adam_steps": 50000,
