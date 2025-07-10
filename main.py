@@ -19,7 +19,7 @@ def load_config(config_path):
 
 if __name__ == "__main__":
     pinn = run_model(CONFIG, save_dir='numerical_experiments/Part4_architectures')
-    generate_plots_from_training_and_push('numerical_experiments/Part4_architectures/pmnn_ResNet_2D_d2_w80')
+    generate_plots_from_training_and_push('numerical_experiments/Part4_architectures/pmnn_ResNet_2D_d4_w20')
 
 
     #pinn1 = run_model(load_config('numerical_experiments/Part1_power_method/pmnn_MLP_10D_d4_w80/config.py'), save_dir='numerical_experiments/Part1_power_method')
