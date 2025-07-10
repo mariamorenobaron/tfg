@@ -18,10 +18,16 @@ def load_config(config_path):
     return config_module.CONFIG
 
 if __name__ == "__main__":
-    pinn = run_model(CONFIG, save_dir='numerical_experiments/Part4_architectures')
-    generate_plots_from_training_and_push('numerical_experiments/Part4_architectures/pmnn_MLP_2D_d2_w80/', push_to_git=True)
+    #pinn = run_model(CONFIG, save_dir='numerical_experiments/Part4_architectures')
+    #generate_plots_from_training_and_push('numerical_experiments/Part4_architectures/pmnn_MLP_2D_d2_w80/', push_to_git=True)
 
+    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/pmnn_MLP_1D_d4_w20', 20000, push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/pmnn_MLP_2D_d4_w20', 50000, push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/pmnn_MLP_5D_d4_w40', 100000, push_to_git=True)
 
+    evaluate_model_and_generate_results('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_1D_d4_w20', 20000, push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_2D_d4_w20', 50000, push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_5D_d4_w40', 100000, push_to_git=True)
 
     #pinn1 = run_model(load_config('numerical_experiments/Part1_power_method/pmnn_MLP_10D_d4_w80/config.py'), save_dir='numerical_experiments/Part1_power_method')
     #generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/pmnn_MLP_10D_d4_w80/', push_to_git=True)
