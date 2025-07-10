@@ -19,7 +19,7 @@ def load_config(config_path):
 
 if __name__ == "__main__":
     pinn = run_model(CONFIG, save_dir='numerical_experiments/Part4_architectures')
-    generate_plots_from_training_and_push('numerical_experiments/Part4_architectures/pmnn_MLP_2D_d2_w20/', push_to_git=True)
+    generate_plots_from_training_and_push('numerical_experiments/Part4_architectures/pmnn_MLP_2D_d2_w40/', push_to_git=True)
 
 
 
