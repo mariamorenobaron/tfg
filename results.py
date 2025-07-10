@@ -175,7 +175,7 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
 
         plt.figure()
         plt.plot(x_sorted, u_true_sorted, linestyle='--', color='navy', label="u_true")
-        plt.plot(x_sorted, u_pred_sorted, linestyle=':', color='seagreen', label="u_pred")
+        plt.plot(x_sorted, u_pred_sorted, linestyle=':', color='crimson', label="u_pred")
         plt.xlabel("x")
         plt.ylabel("u(x)")
         plt.grid(True)
@@ -236,7 +236,7 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
     datas = [np.stack((x_d, d / max_d), axis=1) for d in density_list]
 
     plt.figure()
-    color_map = {"u_true": "black", "u_pred": "steelblue"}
+    color_map = {"u_true": "black", "u_pred": "lime"}
     linestyle_map = {"u_true": "--", "u_pred": ":"}
 
     for data, label in zip(datas, data_labels):

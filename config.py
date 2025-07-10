@@ -10,8 +10,8 @@ CONFIG = {
 
     "architecture": "MLP",     # "MLP" or "ResNet"
     "optimizer": "adam",
-    "method": "ipmnn",                      # "pmnn" or "ipmnn"
-    "depth": 4,
+    "method": "pmnn",                      # "pmnn" or "ipmnn"
+    "depth": 2,
     "width": 20,
     "push_to_git" : True,
 
@@ -20,12 +20,11 @@ CONFIG = {
     "n_train": 20000,
     "early_stopping": False,
     "tolerance": 1e-6,
-    "use_seed": False,
-    "seed": 2,
+    "use_seed": True,
+    "seed": 1,
 
-    "lambda_true": d * np.pi**2,
+    "lambda_true": 100 - d * np.pi**2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
-
 
     "periodic": False,
     "pbc_k": 1,
