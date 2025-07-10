@@ -1,4 +1,4 @@
-from numerical_experiments.Part4_architectures.pmnn_MLP_2D_d8_w40.config import CONFIG
+from config import CONFIG
 from train_model import run_model
 from results import generate_plots_from_training_and_push
 import torch
