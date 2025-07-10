@@ -12,7 +12,7 @@ CONFIG = {
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
     "depth": 4,                            # number of blocks in ResNet or number of hidden layers in MLP
-    "width": 80,
+    "width": 40,
     "push_to_git" : True,
 
     "adam_steps": 50000,
