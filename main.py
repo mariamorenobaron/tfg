@@ -35,51 +35,35 @@ if __name__ == "__main__":
     #torch.cuda.empty_cache()
     #gc.collect()
 
-    pinn4 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs5000/config.py'),
-                      save_dir='numerical_experiments/Part5_epochs_analysis')
-    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs5000/', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs5000/', 100000, push_to_git=True)
 
-    del pinn4
-    torch.cuda.empty_cache()
-    gc.collect()
 
-    pinn5 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs15000/config.py'),
-                      save_dir='numerical_experiments/Part5_epochs_analysis')
-    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs15000/', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs15000/', 100000, push_to_git=True)
-
-    del pinn5
-    torch.cuda.empty_cache()
-    gc.collect()
-
-    pinn6 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_1D_d4_w20_epochs25000/config.py'),save_dir='numerical_experiments/Part5_epochs_analysis')
-    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_1D_d4_w20_epochs25000/', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_1D_d4_w20_epochs25000/', 100000, push_to_git=True)
+    pinn6 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs25000/config.py'),save_dir='numerical_experiments/Part5_epochs_analysis')
+    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs25000/', push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs25000/', 100000, push_to_git=True)
 
     del pinn6
     torch.cuda.empty_cache()
     gc.collect()
 
-    pinn7 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_1D_d4_w20_epochs50000/config.py'), save_dir='numerical_experiments/Part5_epochs_analysis')
-    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_1D_d4_w20_epochs50000/', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_1D_d4_w20_epochs50000/', 100000, push_to_git=True)
+    pinn7 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs50000/config.py'), save_dir='numerical_experiments/Part5_epochs_analysis')
+    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs50000/', push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs50000/', 100000, push_to_git=True)
 
     del pinn7
     torch.cuda.empty_cache()
     gc.collect()
 
-    pinn8 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_5D_d4_w40_epochs100000/config.py'), save_dir='numerical_experiments/Part5_epochs_analysis')
-    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_5D_d4_w40_epochs100000/', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_5D_d4_w40_epochs100000/', 100000, push_to_git=True)
+    pinn8 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs100000/config.py'), save_dir='numerical_experiments/Part5_epochs_analysis')
+    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs100000/', push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs100000/', 100000, push_to_git=True)
 
     del pinn8
     torch.cuda.empty_cache()
     gc.collect()
 
-    pinn9 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_5D_d4_w40_epochs75000/config.py'), save_dir='numerical_experiments/Part5_epochs_analysis')
-    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_5D_d4_w40_epochs75000/', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_5D_d4_w40_epochs75000/', 100000, push_to_git=True)
+    pinn9 = run_model(load_config('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs75000/config.py'), save_dir='numerical_experiments/Part5_epochs_analysis')
+    generate_plots_from_training_and_push('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs75000/', push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part5_epochs_analysis/pmnn_MLP_2D_d4_w20_epochs75000/', 100000, push_to_git=True)
 
 
 
