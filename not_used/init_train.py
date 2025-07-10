@@ -1,10 +1,9 @@
 import time
 import torch
-import numpy as np
 from models import MLP, ResNet
 from pinn_power import PowerMethodPINN
-from config import CONFIG
-torch.set_default_dtype(torch.float64)  
+
+torch.set_default_dtype(torch.float64)
 
 # CURRENTLY NOT USED
 

@@ -1,12 +1,12 @@
-from config import CONFIG
+from numerical_experiments.Part4_architectures.pmnn_MLP_2D_d8_w40.config import CONFIG
 from train_model import run_model
-from results import generate_plots_from_training_and_push, evaluate_model_and_generate_results
+from results import generate_plots_from_training_and_push
 import torch
-import numpy as np
+
 torch.set_default_dtype(torch.float64)
 import importlib.util
 import os
-import gc
+
 
 def load_config(config_path):
     assert os.path.exists(config_path), f"No existe el archivo: {config_path}"
