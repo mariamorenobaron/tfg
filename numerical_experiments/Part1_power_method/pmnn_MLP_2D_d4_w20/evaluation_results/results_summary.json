@@ -6,6 +6,6 @@
     "lambda_abs_error": "2.34e-04",
     "lambda_rel_error": "2.91e-06",
     "L2_error": "1.57e-03",
-    "Linf_error": "3.68e-03",
+    "Linf_error": "3.67e-03",
     "elapsed_minutes": "25.2251"
 }
