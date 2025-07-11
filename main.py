@@ -18,7 +18,7 @@ def load_config(config_path):
     return config_module.CONFIG
 
 if __name__ == "__main__":
-    pinn = run_model(CONFIG, save_dir='numerical_experiments/Part1_power_method')
+    #pinn = run_model(CONFIG, save_dir='numerical_experiments/Part1_power_method')
     generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/pmnn_MLP_10D_d4_w60', push_to_git=True)
 
 
