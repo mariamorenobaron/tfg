@@ -11,13 +11,13 @@ CONFIG = {
     "architecture": "MLP",     # "MLP" or "ResNet"
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
-    "depth": 4,                            # number of blocks in ResNet or number of hidden layers in MLP
+    "depth": 2,                            # number of blocks in ResNet or number of hidden layers in MLP
     "width": 60,
     "push_to_git" : True,
 
-    "adam_steps": 100000,
+    "adam_steps": 70000,
     "adam_lr": 1e-3,
-    "n_train": 70000,
+    "n_train": 100000,
     "early_stopping": False,
     "tolerance": 1e-6,
     "use_seed": False,
