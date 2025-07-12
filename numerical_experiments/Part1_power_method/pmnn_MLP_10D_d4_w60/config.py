@@ -11,8 +11,8 @@ CONFIG = {
     "architecture": "MLP",     # "MLP" or "ResNet"
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
-    "depth": 4,
-    "width": 80,
+    "depth": 4,                            # number of blocks in ResNet or number of hidden layers in MLP
+    "width": 60,
     "push_to_git" : True,
 
     "adam_steps": 100000,
@@ -21,7 +21,7 @@ CONFIG = {
     "early_stopping": False,
     "tolerance": 1e-6,
     "use_seed": False,
-    "seed": 2,
+    "seed": 1,
 
     "lambda_true": 100 - d * np.pi**2,
     "exact_u": lambda x: np.prod(np.sin(np.pi * x), axis=1, keepdims=True),
