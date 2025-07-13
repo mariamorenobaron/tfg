@@ -17,9 +17,9 @@ def load_config(config_path):
     return config_module.CONFIG
 
 if __name__ == "__main__":
-    #pinn = run_model(CONFIG, save_dir='numerical_experiments/Part1_power_method/new')
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/new/pmnn_MLP_1D_d4_w20_new', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/new/pmnn_MLP_1D_d4_w20_new', 20000, push_to_git=True)
+    pinn = run_model(CONFIG, save_dir='numerical_experiments/Part1_power_method/new')
+    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/new/pmnn_MLP_10D_d4_w80_new/', push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/new/pmnn_MLP_10D_d4_w80_new/', 150000, push_to_git=True)
 
 
     #pinn2 = run_model(load_config('numerical_experiments/Part2_inverse_power_method/ipmnn_MLP_10D_d4_w80/config.py'), save_dir='numerical_experiments/Part2_inverse_power_method')
