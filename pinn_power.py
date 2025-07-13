@@ -110,9 +110,12 @@ class PowerMethodPINN:
             "u_infty": float(u_infty)
         })
 
-        #if tmp_loss.item() < self.min_loss:
-        if loss.item() < self.min_loss:
-            self.min_loss = loss.item()
+        #loss_model = temp_loss.item()
+        #loss_model = 0.7 * loss.item() + 0.3 * tmp_loss.item()
+
+        loss_model = loss.item()
+        if loss_model < self.min_loss:
+            self.min_loss = loss_model
             self.best_lambda = self.lambda_.item()
             self.best_model_state = self.model.state_dict()
             self.best_iteration = len(self.lambda_history)
