@@ -85,7 +85,9 @@ class PowerMethodPINN:
 
         with torch.no_grad():
             u_new = Lu / torch.norm(Lu, p=2)
+
         self.u = u_new
+        self.u = self.u / torch.norm(self.u)
 
         loss = mse_loss_fn(u_prev, u_new)
         loss.backward()
@@ -110,7 +112,7 @@ class PowerMethodPINN:
 
         #if tmp_loss.item() < self.min_loss:
         if loss.item() < self.min_loss:
-            self.min_loss = tmp_loss.item()
+            self.min_loss = loss.item()
             self.best_lambda = self.lambda_.item()
             self.best_model_state = self.model.state_dict()
             self.best_iteration = len(self.lambda_history)
