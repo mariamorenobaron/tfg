@@ -6,12 +6,12 @@
     "method": "pmnn",
     "epochs": 50000,
     "data_points": 10000,
-    "lambda_pred": 90.13032936544079,
+    "lambda_pred": 90.13038750857952,
     "lambda_true": 90.13039559891064,
-    "best_iteration": 25715,
-    "min_loss": 5.321997195569268e-12,
-    "time_seconds": 1125.1766505241394,
-    "peak_ram_MB": 89.94169807434082,
+    "best_iteration": 28150,
+    "min_loss": 4.73030133184438e-11,
+    "time_seconds": 1124.7160384654999,
+    "peak_ram_MB": 89.93629932403564,
     "peak_gpu_MB": 186.33203125,
     "device": "cuda"
 }
