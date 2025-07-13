@@ -101,3 +101,114 @@ def run_model(config, save_dir='numerical_experiments'):
 
     return pinn
 
+
+def run_model_all_criteria(config, save_dir='numerical_experiments'):
+
+    base_name = f"{config['method']}_{config['architecture']}_{config['dimension']}D_d{config['depth']}_w{config['width']}"
+    print(f"[INFO] Running model with base name: {base_name}")
+    original_dir = os.path.join(save_dir, base_name)
+    os.makedirs(original_dir, exist_ok=True)
+    config["save_dir"] = original_dir
+
+    if config.get("use_seed", False):
+        seed = config.get("seed", 42)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+        print(f"[INFO] Using fixed seed: {seed}")
+    else:
+        print("[INFO] Random seed is not fixed.")
+
+    input_dim = config["dimension"] * (2 * config.get("pbc_k", 1) if config.get("periodic", False) else 1)
+    config["input_dim"] = input_dim
+
+    if config["architecture"].lower() == 'mlp':
+        layers = [input_dim] + [config["width"]] * config["depth"] + [1]
+        model = MLP(layers)
+    elif config["architecture"].lower() == 'resnet':
+        model = ResNet(in_num=input_dim, out_num=1, block_layers=[config["width"]] * 2, block_num=config["depth"])
+    else:
+        raise ValueError("Unknown architecture.")
+
+    method = config["method"].lower()
+    if method == "pmnn":
+        pinn = PowerMethodPINN(model.double(), config)
+    elif method == "ipmnn":
+        pinn = InversePowerMethodPINN(model.double(), config)
+    else:
+        raise ValueError("Unknown method: choose 'pmnn' or 'ipmnn'.")
+
+    # Start training
+    tracemalloc.start()
+    t0 = time.time()
+    if torch.cuda.is_available():
+        torch.cuda.reset_peak_memory_stats()
+
+    if config["optimizer"].lower() == "adam":
+        pinn.optimize_adam()
+    else:
+        raise ValueError("Unknown optimizer.")
+
+    elapsed = time.time() - t0
+    current, peak = tracemalloc.get_traced_memory()
+    tracemalloc.stop()
+    peak_gpu = torch.cuda.max_memory_allocated() / 1024 / 1024 if torch.cuda.is_available() else 0.0
+
+    # Guardar training curve
+    pinn.save_training_curve()
+
+    # Guardar 4 modelos según criterio
+    criteria = [
+        ("loss", pinn.best_model_loss, pinn.best_lambda_loss, pinn.min_loss, pinn.best_iteration_loss),
+        ("loss_temporal", pinn.best_model_temporal_loss, pinn.best_lambda_temporal_loss, pinn.min_temporal_loss, pinn.best_iteration_temporal_loss),
+        ("loss_combined", pinn.best_model_combined_loss, pinn.best_lambda_combined_loss, pinn.min_combined_loss, pinn.best_iteration_combined_loss),
+        ("loss_combined1", pinn.best_model_combined_loss1, pinn.best_lambda_combined_loss1, pinn.min_combined_loss1, pinn.best_iteration_combined_loss1),
+    ]
+
+    for name, model_state, lambda_val, loss_val, iteration in criteria:
+        export_dir = os.path.join(save_dir, name, base_name)
+        os.makedirs(export_dir, exist_ok=True)
+
+        # Guardar modelo
+        torch.save(model_state, os.path.join(export_dir, "model.pt"))
+
+        # Guardar summary
+        summary = {
+            "criterion": name,
+            "architecture": config["architecture"],
+            "depth": config["depth"],
+            "width": config["width"],
+            "optimizer": config["optimizer"],
+            "method": config["method"],
+            "dimension": config["dimension"],
+            "epochs": config.get("adam_steps", None),
+            "data_points": config.get("n_train", None),
+            "lambda_pred": float(lambda_val),
+            "lambda_true": float(config["lambda_true"]),
+            "best_iteration": iteration,
+            "loss_value": float(loss_val),
+            "time_seconds": elapsed,
+            "peak_ram_MB": peak / 1024 / 1024,
+            "peak_gpu_MB": peak_gpu,
+            "device": str(pinn.device)
+        }
+
+        with open(os.path.join(export_dir, "summary.json"), "w") as f:
+            json.dump(summary, f, indent=4)
+
+        # Copiar training curve
+        training_curve_file = os.path.join(original_dir, "training_curve.json")
+        if os.path.exists(training_curve_file):
+            import shutil
+            shutil.copy(training_curve_file, os.path.join(export_dir, "training_curve.json"))
+
+        print(f"[INFO] Exported model for {name} to {export_dir}")
+
+    # Optional GitHub push (from original run)
+    if config.get("push_to_git", True):
+        maybe_push_to_git(original_dir, message=f"Training completed for {base_name} in {elapsed:.2f} seconds.")
+
+    return pinn
+
+

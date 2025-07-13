@@ -17,11 +17,32 @@ class PowerMethodPINN:
         self.u = torch.rand_like(self.x_train[:, :1]).to(self.device)
         self.u = self.u / torch.norm(self.u)
         self.lambda_ = torch.tensor(1.0, dtype=torch.float64, device=self.device)
+        self.best_model_state = None
 
         self.min_loss = float("inf")
-        self.best_lambda = None
-        self.best_model_state = None
-        self.best_iteration = None
+        self.min_temporal_loss = float("inf")
+        self.min_combined_loss = float("inf")
+        self.min_combined_loss1 = float("inf")
+
+
+        self.best_lambda_loss = None
+        self.best_lambda_temporal_loss = None
+        self.best_lambda_combined_loss = None
+        self.best_lambda_combined_loss1 = None
+
+
+        self.best_model_loss = None
+        self.best_model_temporal_loss = None
+        self.best_model_combined_loss = None
+        self.best_model_combined_loss1 = None
+
+
+        self.best_iteration_loss = None
+        self.best_iteration_temporal_loss = None
+        self.best_iteration_combined_loss = None
+        self.best_iteration_combined_loss1 = None
+
+
         self.loss_history = []
         self.lambda_history = []
         self.training_curve = []
@@ -110,15 +131,32 @@ class PowerMethodPINN:
             "u_infty": float(u_infty)
         })
 
-        #loss_model = temp_loss.item()
-        #loss_model = 0.7 * loss.item() + 0.3 * tmp_loss.item()
+        if loss.item() < self.min_loss:
+            self.min_loss = loss.item()
+            self.best_lambda_loss = self.lambda_.item()
+            self.best_model_loss = self.model.state_dict()
+            self.best_iteration_loss = len(self.lambda_history)
 
-        loss_model = loss.item()
-        if loss_model < self.min_loss:
-            self.min_loss = loss_model
-            self.best_lambda = self.lambda_.item()
-            self.best_model_state = self.model.state_dict()
-            self.best_iteration = len(self.lambda_history)
+        if tmp_loss.item() < self.min_temporal_loss:
+            self.min_temporal_loss = tmp_loss.item()
+            self.best_lambda_temporal_loss = self.lambda_.item()
+            self.best_model_temporal_loss = self.model.state_dict()
+            self.best_iteration_temporal_loss = len(self.lambda_history)
+
+        combined_loss = 0.7 * loss.item() + 0.3 * tmp_loss.item()
+        if combined_loss < self.min_combined_loss:
+            self.min_combined_loss = combined_loss
+            self.best_lambda_combined_loss = self.lambda_.item()
+            self.best_model_combined_loss = self.model.state_dict()
+            self.best_iteration_combined_loss = len(self.lambda_history)
+
+        combined_loss1 = 0.5 * loss.item() + 0.5 * tmp_loss.item()
+        if combined_loss1 < self.min_combined_loss1:
+            self.min_combined_loss1 = combined_loss1
+            self.best_lambda_combined_loss1 = self.lambda_.item()
+            self.best_model_combined_loss1 = self.model.state_dict()
+            self.best_iteration_combined_loss1 = len(self.lambda_history)
+
 
         return loss, tmp_loss, self.lambda_
 
@@ -139,7 +177,11 @@ class PowerMethodPINN:
                     print(f"[INFO] Early stopping at iteration {it} with loss {temporal_loss:.4e}")
                     break
 
-        print(f"Finished Adam. Best λ = {self.best_lambda:.6f} | Min Loss = {self.min_loss:.4e}")
+        #print(f"Finished Adam. Best λ = {self.best_lambda:.6f} | Min Loss = {self.min_loss:.4e}")
+        print(f"Finished Adam. Best λ_loss = {self.best_lambda_loss:.6f} | Min Loss = {self.min_loss:.4e}")
+        print(f"Best λ_temporal_loss = {self.best_lambda_temporal_loss:.6f} | Min Temporal Loss = {self.min_temporal_loss:.4e}")
+        print(f"Best λ_combined_loss = {self.best_lambda_combined_loss:.6f} | Min Combined Loss = {self.min_combined_loss:.4e}")
+        print(f"Best λ_combined_loss1 = {self.best_lambda_combined_loss1:.6f} | Min Combined Loss1 = {self.min_combined_loss1:.4e}")
         if self.best_model_state is not None:
             self.model.load_state_dict(self.best_model_state)
 

@@ -17,7 +17,7 @@ CONFIG = {
 
     "adam_steps": 50000,
     "adam_lr": 1e-3,
-    "n_train": 15000,
+    "n_train": 10000,
     "early_stopping": False,
     "tolerance": 1e-6,
     "use_seed": True,
