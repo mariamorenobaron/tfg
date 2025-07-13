@@ -109,7 +109,7 @@ class PowerMethodPINN:
         })
 
         #if tmp_loss.item() < self.min_loss:
-        if loss.item < self.min_loss:
+        if loss.item() < self.min_loss:
             self.min_loss = tmp_loss.item()
             self.best_lambda = self.lambda_.item()
             self.best_model_state = self.model.state_dict()
