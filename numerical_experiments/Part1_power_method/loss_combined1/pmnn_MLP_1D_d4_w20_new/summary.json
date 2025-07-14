@@ -12,8 +12,8 @@
     "lambda_true": 90.13039559891064,
     "best_iteration": 4985,
     "loss_value": 2.558777509326269e-09,
-    "time_seconds": 123.547110080719,
-    "peak_ram_MB": 68.67867755889893,
+    "time_seconds": 122.85805153846741,
+    "peak_ram_MB": 68.68465900421143,
     "peak_gpu_MB": 270.24755859375,
     "device": "cuda"
 }
