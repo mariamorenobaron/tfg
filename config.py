@@ -15,7 +15,7 @@ CONFIG = {
     "width": 20,
     "push_to_git" : True,
 
-    "adam_steps": 5000,
+    "adam_steps": 50000,
     "adam_lr": 1e-3,
     "n_train": 15000,
     "early_stopping": False,
