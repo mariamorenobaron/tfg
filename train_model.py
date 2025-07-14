@@ -204,4 +204,4 @@ def run_model_all_criteria(config, save_dir='numerical_experiments'):
 
     # Git push opcional (si se quiere, lo puedes quitar)
     if config.get("push_to_git", True):
-        maybe_push_to_git(export_dir, message=f"Training completed for {base_name} in {elapsed:.2f} seconds.")
+        maybe_push_to_git(save_dir, message=f"Training completed for {base_name} in {elapsed:.2f} seconds.")
