@@ -107,9 +107,8 @@ def run_model_all_criteria(config, save_dir='numerical_experiments'):
 
     base_name = f"{config['method']}_{config['architecture']}_{config['dimension']}D_d{config['depth']}_w{config['width']}_new"
     print(f"[INFO] Running model with base name: {base_name}")
-    run_dir = os.path.join(save_dir, base_name)
-    os.makedirs(run_dir, exist_ok=True)
-    config["save_dir"] = run_dir
+
+    config["save_dir"] = None  # no guardes en run_dir
 
     if config.get("use_seed", False):
         seed = config.get("seed", 42)
@@ -155,10 +154,7 @@ def run_model_all_criteria(config, save_dir='numerical_experiments'):
     tracemalloc.stop()
     peak_gpu = torch.cuda.max_memory_allocated() / 1024 / 1024 if torch.cuda.is_available() else 0.0
 
-    # Guardar curva en el run_dir temporal (para copiarla luego)
-    pinn.save_training_curve()
-
-    # CRITERIOS MULTIPLES
+    # Definir carpetas de salida para cada criterio
     criteria = [
         ("loss", pinn.best_model_loss, pinn.best_lambda_loss, pinn.min_loss, pinn.best_iteration_loss),
         ("loss_temporal", pinn.best_model_temporal_loss, pinn.best_lambda_temporal_loss, pinn.min_temporal_loss, pinn.best_iteration_temporal_loss),
@@ -167,11 +163,18 @@ def run_model_all_criteria(config, save_dir='numerical_experiments'):
     ]
 
     for name, model_state, lambda_val, loss_val, iteration in criteria:
+        if model_state is None:
+            print(f"[WARNING] No model found for criterion '{name}'. Skipping export.")
+            continue
+
         export_dir = os.path.join(save_dir, name, base_name)
         os.makedirs(export_dir, exist_ok=True)
 
-        # Guardar modelo
+        # Guardar modelo (state dict)
         torch.save(model_state, os.path.join(export_dir, "model.pt"))
+
+        # Guardar training curve directamente en carpeta correcta
+        pinn.save_training_curve(export_dir)
 
         # Guardar resumen
         summary = {
@@ -197,17 +200,8 @@ def run_model_all_criteria(config, save_dir='numerical_experiments'):
         with open(os.path.join(export_dir, "summary.json"), "w") as f:
             json.dump(summary, f, indent=4)
 
-        # Copiar curva
-        src_curve = os.path.join(run_dir, "training_curve.json")
-        dst_curve = os.path.join(export_dir, "training_curve.json")
-        if os.path.exists(src_curve):
-            shutil.copyfile(src_curve, dst_curve)
+        print(f"[INFO] Exported model for '{name}' to: {export_dir}")
 
-        print(f"[INFO] Exported model for {name} to {export_dir}")
-
-    # Git push (solo desde el original)
+    # Git push opcional (si se quiere, lo puedes quitar)
     if config.get("push_to_git", True):
-        maybe_push_to_git(run_dir, message=f"Training completed for {base_name} in {elapsed:.2f} seconds.")
-
-    return pinn
-
+        maybe_push_to_git(export_dir, message=f"Training completed for {base_name} in {elapsed:.2f} seconds.")

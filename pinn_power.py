@@ -185,8 +185,8 @@ class PowerMethodPINN:
         if self.best_model_state is not None:
             self.model.load_state_dict(self.best_model_state)
 
-    def save_training_curve(self):
-        path = os.path.join(self.run_dir, "training_curve.json")
+    def save_training_curve(self, directory=None):
+        path = os.path.join(directory, "training_curve.json")
         with open(path, "w") as f:
             json.dump(self.training_curve, f, indent=2)
 
