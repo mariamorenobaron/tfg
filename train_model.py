@@ -105,7 +105,7 @@ def run_model(config, save_dir='numerical_experiments'):
 
 def run_model_all_criteria(config, save_dir='numerical_experiments'):
 
-    base_name = f"{config['method']}_{config['architecture']}_{config['dimension']}D_d{config['depth']}_w{config['width']}_trial"
+    base_name = f"{config['method']}_{config['architecture']}_{config['dimension']}D_d{config['depth']}_w{config['width']}"
     print(f"[INFO] Running model with base name: {base_name}")
 
     config["save_dir"] = None  # no guardes en run_dir
