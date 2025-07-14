@@ -8,12 +8,12 @@
     "dimension": 5,
     "epochs": 50000,
     "data_points": 50000,
-    "lambda_pred": 50.651956360925546,
+    "lambda_pred": 50.65201889175861,
     "lambda_true": 50.65197799455321,
     "best_iteration": 50000,
-    "loss_value": 1.0871820814413724e-10,
-    "time_seconds": 3983.682538509369,
-    "peak_ram_MB": 92.2080945968628,
-    "peak_gpu_MB": 8148.982421875,
+    "loss_value": 1.1113166482145541e-10,
+    "time_seconds": 4017.1813542842865,
+    "peak_ram_MB": 92.19159030914307,
+    "peak_gpu_MB": 8153.4296875,
     "device": "cuda"
 }
