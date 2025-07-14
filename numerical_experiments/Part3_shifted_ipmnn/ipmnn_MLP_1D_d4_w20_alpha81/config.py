@@ -29,5 +29,5 @@ CONFIG = {
     "periodic": False,
     "pbc_k": 1,
     "periods": None,
-    "alpha": 81.0    # component for shifted inverse power method
+    "alpha": 81   # component for shifted inverse power method
 }
