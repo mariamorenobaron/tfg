@@ -23,20 +23,16 @@ if __name__ == "__main__":
         torch.cuda.empty_cache()
     gc.collect()
 
-    generate_plots_from_training_and_push('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha81', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha81', 20000, push_to_git=True)
+    run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method')
 
-
-
-
-    #generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss/pmnn_MLP_1D_d4_w20', push_to_git=True)
-    #evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss/pmnn_MLP_1D_d4_w20', 20000, push_to_git=True)
-    #generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss_temporal/pmnn_MLP_1D_d4_w20', push_to_git=True)
-    #evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss_temporal/pmnn_MLP_1D_d4_w20', 20000, push_to_git=True)
-    #generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss_combined/pmnn_MLP_1D_d4_w20', push_to_git=True)
-    #evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss_combined/pmnn_MLP_1D_d4_w20', 20000, push_to_git=True)
-    #generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss_combined1/pmnn_MLP_1D_d4_w20', push_to_git=True)
-    #evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss_combined1/pmnn_MLP_1D_d4_w20', 20000, push_to_git=True)
+    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss/pmnn_MLP_10D_d4_w80', push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss/pmnn_MLP_10D_d4_w80', 20000, push_to_git=True)
+    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss_temporal/pmnn_MLP_10D_d4_w80', push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss_temporal/pmnn_MLP_10D_d4_w80', 20000, push_to_git=True)
+    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss_combined/pmnn_MLP_10D_d4_w80', push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss_combined/pmnn_MLP_10D_d4_w80', 20000, push_to_git=True)
+    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss_combined1/pmnn_MLP_10D_d4_w80', push_to_git=True)
+    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss_combined1/pmnn_MLP_10D_d4_w80', 20000, push_to_git=True)
 
 
 
