@@ -3,6 +3,7 @@ import time
 import json
 import torch
 import tracemalloc
+import shutil
 import numpy as np
 import subprocess
 from models import MLP, ResNet
