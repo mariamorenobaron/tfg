@@ -23,19 +23,19 @@ if __name__ == "__main__":
         torch.cuda.empty_cache()
     gc.collect()
 
-    pinn = run_model(load_config('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha36'), save_dir='numerical_experiments/Part3_shifted_ipmnn')
+    pinn = run_model(load_config('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha36/config.py'), save_dir='numerical_experiments/Part3_shifted_ipmnn')
     generate_plots_from_training_and_push('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha36', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha36', 20000, push_to_git=True)
 
-    pinn = run_model(load_config('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha81'), save_dir='numerical_experiments/Part3_shifted_ipmnn')
+    pinn = run_model(load_config('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha81/config.py'), save_dir='numerical_experiments/Part3_shifted_ipmnn')
     generate_plots_from_training_and_push('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha81', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha81', 20000, push_to_git=True)
 
-    pinn = run_model(load_config('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha144'), save_dir='numerical_experiments/Part3_shifted_ipmnn')
+    pinn = run_model(load_config('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha144/config.py'), save_dir='numerical_experiments/Part3_shifted_ipmnn')
     generate_plots_from_training_and_push('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha144', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha144', 20000, push_to_git=True)
 
-    pinn = run_model(load_config('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha225'), save_dir='numerical_experiments/Part3_shifted_ipmnn')
+    pinn = run_model(load_config('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha225/config.py'), save_dir='numerical_experiments/Part3_shifted_ipmnn')
     generate_plots_from_training_and_push('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha225', push_to_git=True)
     evaluate_model_and_generate_results('numerical_experiments/Part3_shifted_ipmnn/ipmnn_MLP_1D_d4_w20_alpha225', 20000, push_to_git=True)
 
