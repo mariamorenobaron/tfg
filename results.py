@@ -7,6 +7,17 @@ import torch
 import numpy as np
 import matplotlib.pyplot as plt
 from utils import sample_lhs, coor_shift, apply_boundary_condition
+import random
+
+SEED = 1234
+
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+torch.cuda.manual_seed_all(SEED)
+torch.backends.cudnn.deterministic = True
+torch.backends.cudnn.benchmark = False
+
 
 def moving_average(x, w):
     return np.convolve(x, np.ones(w) / w, mode='valid')
