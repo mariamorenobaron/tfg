@@ -1,6 +1,6 @@
 import numpy as np
 
-d = 10
+d = 5
 
 CONFIG = {
     "dimension": d,
@@ -12,12 +12,12 @@ CONFIG = {
     "optimizer": "adam",
     "method": "pmnn",                      # "pmnn" or "ipmnn"
     "depth": 4,
-    "width": 80,
+    "width": 40,
     "push_to_git" : True,
 
-    "adam_steps": 100000,
+    "adam_steps": 50000,
     "adam_lr": 1e-3,
-    "n_train": 70000,
+    "n_train": 50000,
     "early_stopping": False,
     "tolerance": 1e-6,
     "use_seed": True,
