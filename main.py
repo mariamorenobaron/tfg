@@ -18,6 +18,8 @@ def load_config(config_path):
 
 if __name__ == "__main__":
 
+
+
     run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method')
 
 
@@ -32,6 +34,5 @@ if __name__ == "__main__":
     #generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/pmnn_MLP_2D_d4_w20', push_to_git=True)
     #evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/pmnn_MLP_2D_d4_w20', 100000, push_to_git=True)
 
-    #del pinn2
     #torch.cuda.empty_cache()
     #gc.collect()
