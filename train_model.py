@@ -158,8 +158,8 @@ def run_model_all_criteria(config, save_dir='numerical_experiments'):
     criteria = [
         ("loss", pinn.best_model_loss, pinn.best_lambda_loss, pinn.min_loss, pinn.best_iteration_loss),
         ("loss_temporal", pinn.best_model_temporal_loss, pinn.best_lambda_temporal_loss, pinn.min_temporal_loss, pinn.best_iteration_temporal_loss),
-        ("loss_combined", pinn.best_model_combined_loss, pinn.best_lambda_combined_loss, pinn.min_combined_loss, pinn.best_iteration_combined_loss),
         ("loss_combined1", pinn.best_model_combined_loss1, pinn.best_lambda_combined_loss1, pinn.min_combined_loss1, pinn.best_iteration_combined_loss1),
+        ("loss_combined", pinn.best_model_combined_loss, pinn.best_lambda_combined_loss, pinn.min_combined_loss, pinn.best_iteration_combined_loss),
     ]
 
     for name, model_state, lambda_val, loss_val, iteration in criteria:
