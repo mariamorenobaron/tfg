@@ -5,6 +5,7 @@ torch.set_default_dtype(torch.float64)
 from train_model import run_model, run_model_all_criteria
 import importlib.util
 import os
+import gc
 
 
 def load_config(config_path):
@@ -18,7 +19,9 @@ def load_config(config_path):
 
 if __name__ == "__main__":
 
-
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    gc.collect()
 
     run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method')
 

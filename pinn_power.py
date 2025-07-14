@@ -1,6 +1,7 @@
 import torch
 import os
 import json
+import gc
 import numpy as np
 from utils import sample_lhs, periodic_transform, coor_shift, compute_laplacian, apply_boundary_condition
 
@@ -169,6 +170,8 @@ class PowerMethodPINN:
             self.optimizer.step()
 
             if it % 1000 == 0 or it == self.config["adam_steps"] - 1:
+                torch.cuda.empty_cache()
+                gc.collect()
                 print(f"[{it:05d}] Loss = {loss:.4e} | λ_est = {lambda_val:.6f} | λ_true = {self.config['lambda_true']:.6f}")
 
             if self.config.get("early_stopping", False):
