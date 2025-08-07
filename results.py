@@ -114,7 +114,7 @@ def generate_plots_from_training_and_push(root_dir, push_to_git=True, smooth_lam
             print(f"Error al hacer push a GitHub: {e}")
 
 
-def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True):
+def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True, seed = False):
 
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
@@ -144,6 +144,12 @@ def evaluate_model_and_generate_results(subdir, n_eval_points, push_to_git=True)
     dim = config["dimension"]
     domain_lb = np.array(config["domain_lb"])
     domain_ub = np.array(config["domain_ub"])
+
+    # poner una seed para reproducibilidad de los test en distintos modelos
+
+    if seed:
+        seed_value = 101
+        np.random.seed(seed_value)
 
     x_eval = sample_lhs(domain_lb, domain_ub, n_eval_points, dim)
 
