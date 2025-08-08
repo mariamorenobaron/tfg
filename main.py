@@ -55,7 +55,7 @@ if __name__ == "__main__":
     evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss_combined1/pmnn_MLP_5D_d4_w40', 100000, push_to_git=True, seed=True)
 
 
-    run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
+    run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed300')
 
 
 
