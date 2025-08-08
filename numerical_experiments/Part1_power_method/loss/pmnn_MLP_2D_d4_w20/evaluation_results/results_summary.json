@@ -1,6 +1,6 @@
 {
     "model": "MLP_4x20_adam_pmnn",
-    "n_eval_points": 50000,
+    "n_eval_points": 100000,
     "lambda_pred": "80.25995534",
     "lambda_true": "80.26079120",
     "lambda_abs_error": "8.36e-04",
