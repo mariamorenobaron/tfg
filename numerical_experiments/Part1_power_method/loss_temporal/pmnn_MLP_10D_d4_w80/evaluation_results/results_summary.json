@@ -5,7 +5,7 @@
     "lambda_true": "1.30395599",
     "lambda_abs_error": "1.83e-01",
     "lambda_rel_error": "1.41e-01",
-    "L2_error": "1.03e-02",
-    "Linf_error": "5.78e-01",
+    "L2_error": "1.05e-02",
+    "Linf_error": "7.36e-01",
     "elapsed_minutes": "598.5903"
 }
