@@ -35,8 +35,8 @@ if __name__ == "__main__":
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method')
 
     run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed100')
-    run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
-    run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed300')
+    #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
+    #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed300')
 
 
 
