@@ -24,7 +24,7 @@ if __name__ == "__main__":
     gc.collect()
 
 
-    # generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss/pmnn_MLP_1D_d4_w20', push_to_git=True)
+    #generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss/pmnn_MLP_1D_d4_w20', push_to_git=True)
     # evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss/pmnn_MLP_1D_d4_w20', 20000, push_to_git=True)
     # generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/loss_temporal/pmnn_MLP_1D_d4_w20', push_to_git=True)
     # evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss_temporal/pmnn_MLP_1D_d4_w20', 20000, push_to_git=True)
@@ -34,6 +34,8 @@ if __name__ == "__main__":
     # evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/loss_combined1/pmnn_MLP_1D_d4_w20', 20000, push_to_git=True)
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method')
 
+    run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed100')
+    run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
     run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed300')
 
 
