@@ -35,35 +35,8 @@ if __name__ == "__main__":
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method')
 
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed100')
-    #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
+    run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed300')
-
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed100/loss/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed100/loss/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed100/loss_temporal/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed100/loss_temporal/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed100/loss_combined/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed100/loss_combined/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed100/loss_combined1/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed100/loss_combined1/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed200/loss/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed200/loss/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed200/loss_temporal/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed200/loss_temporal/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed200/loss_combined/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed200/loss_combined/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed200/loss_combined1/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed200/loss_combined1/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed300/loss/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed300/loss/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed300/loss_temporal/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed300/loss_temporal/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed300/loss_combined/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed300/loss_combined/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
-    generate_plots_from_training_and_push('numerical_experiments/Part1_power_method/seed300/loss_combined1/pmnn_MLP_10D_d4_w80', push_to_git=True)
-    evaluate_model_and_generate_results('numerical_experiments/Part1_power_method/seed300/loss_combined1/pmnn_MLP_10D_d4_w80', 100000, push_to_git=True, seed=True)
 
 
 
