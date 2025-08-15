@@ -1,0 +1,19 @@
+{
+    "criterion": "loss_combined1",
+    "architecture": "MLP",
+    "depth": 4,
+    "width": 40,
+    "optimizer": "adam",
+    "method": "pmnn",
+    "dimension": 5,
+    "epochs": 50000,
+    "data_points": 50000,
+    "lambda_pred": 50.65147234201316,
+    "lambda_true": 50.65197799455321,
+    "best_iteration": 50000,
+    "loss_value": 4.65446030688939e-11,
+    "time_seconds": 4070.7388019561768,
+    "peak_ram_MB": 92.1941089630127,
+    "peak_gpu_MB": 8153.4296875,
+    "device": "cuda"
+}
