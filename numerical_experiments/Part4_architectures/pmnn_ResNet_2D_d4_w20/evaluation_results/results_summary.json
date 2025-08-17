@@ -1,0 +1,11 @@
+{
+    "model": "ResNet_4x20_adam_pmnn",
+    "n_eval_points": 70000,
+    "lambda_pred": "80.26025995",
+    "lambda_true": "80.26079120",
+    "lambda_abs_error": "5.31e-04",
+    "lambda_rel_error": "6.62e-06",
+    "L2_error": "9.39e-05",
+    "Linf_error": "2.70e-04",
+    "elapsed_minutes": "29.6420"
+}
