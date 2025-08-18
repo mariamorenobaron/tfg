@@ -18,17 +18,17 @@ def collect_results(root_dir):
 
             lambda_true = summary.get("lambda_true")
             lambda_pred = summary.get("lambda_pred")
-            rel_error = summary.get("relative_error")
-            l2_error = summary.get("l2_error")
-            linf_error = summary.get("linf_error")
+            rel_error = summary.get("lambda_rel_error")
+            l2_error = summary.get("L2_error")
+            linf_error = summary.get("Linf_error")
 
             rows.append({
                 "path": subdir,
                 "λ_true": lambda_true,
                 "λ_pred": lambda_pred,
                 "Rel. Error": rel_error,
-                "L2 Error": L2_error,
-                "L∞ Error": Linf_error
+                "L2 Error": l2_error,
+                "L∞ Error": linf_error
             })
 
     df = pd.DataFrame(rows)
