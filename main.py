@@ -8,6 +8,10 @@ import os
 import json
 import pandas as pd
 
+import os
+import json
+import pandas as pd
+
 def collect_results(root_dir):
     rows = []
     for subdir, _, files in os.walk(root_dir):
@@ -23,7 +27,7 @@ def collect_results(root_dir):
             linf_error = summary.get("Linf_error")
 
             rows.append({
-                "path": subdir,
+                "path": os.path.relpath(subdir, root_dir),  # relativo
                 "λ_true": lambda_true,
                 "λ_pred": lambda_pred,
                 "Rel. Error": rel_error,
@@ -33,6 +37,7 @@ def collect_results(root_dir):
 
     df = pd.DataFrame(rows)
     return df
+
 
 
 def load_config(config_path):
