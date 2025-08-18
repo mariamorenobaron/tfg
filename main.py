@@ -5,10 +5,35 @@ torch.set_default_dtype(torch.float64)
 from train_model import run_model, run_model_all_criteria
 import importlib.util
 import os
-import gc
-from pathlib import Path
-import numpy as np
+import json
+import pandas as pd
 
+def collect_results(root_dir):
+    rows = []
+    for subdir, _, files in os.walk(root_dir):
+        if "results_summary.json" in files:
+            path = os.path.join(subdir, "results_summary.json")
+            with open(path, "r") as f:
+                summary = json.load(f)
+
+            d = summary.get("dimension")
+            lambda_true = summary.get("lambda_true")
+            lambda_pred = summary.get("lambda_pred")
+            rel_error = summary.get("relative_error")
+            l2_error = summary.get("l2_error")
+            linf_error = summary.get("linf_error")
+
+            rows.append({
+                "d": d,
+                "λ_true": lambda_true,
+                "λ_pred": lambda_pred,
+                "Rel. Error": rel_error,
+                "L2 Error": l2_error,
+                "L∞ Error": linf_error
+            })
+
+    df = pd.DataFrame(rows)
+    return df
 
 
 def load_config(config_path):
@@ -68,34 +93,8 @@ def collect_and_summarize(base_path: str, suffix: str):
 
 
 if __name__ == "__main__":
-    print('1 dimension')
-    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_combined/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_combined1/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_temporal/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
 
-    print('\n2 dimensions')
-    collect_and_summarize('numerical_experiments/Part1_power_method',
-                          'loss/pmnn_MLP_2D_d4_w20/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method',
-                          'loss_combined/pmnn_MLP_2D_d4_w20/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method',
-                          'loss_combined1/pmnn_MLP_2D_d4_w20/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method',
-                          'loss_temporal/pmnn_MLP_2D_d4_w20/evaluation_results/results_summary.json')
-
-    print('\n5 dimensions')
-
-    collect_and_summarize('numerical_experiments/Part1_power_method',
-                            'loss/pmnn_MLP_5D_d4_w40/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method',
-                            'loss_combined/pmnn_MLP_5D_d4_w40/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method',
-                            'loss_combined1/pmnn_MLP_5D_d4_w40/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method',
-                            'loss_temporal/pmnn_MLP_5D_d4_w40/evaluation_results/results_summary.json')
-
-
+    collect_results('numerical_experiments/Part1_power_method/loss')
 
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed100')
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
