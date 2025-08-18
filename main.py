@@ -68,14 +68,32 @@ def collect_and_summarize(base_path: str, suffix: str):
 
 
 if __name__ == "__main__":
-
+    print('1 dimension')
     collect_and_summarize('numerical_experiments/Part1_power_method', 'loss/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
     collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_combined/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
     collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_combined1/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
     collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_temporal/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
 
+    print('\n2 dimensions')
+    collect_and_summarize('numerical_experiments/Part1_power_method',
+                          'loss/pmnn_MLP_2D_d4_w20/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method',
+                          'loss_combined/pmnn_MLP_2D_d4_w20/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method',
+                          'loss_combined1/pmnn_MLP_2D_d4_w20/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method',
+                          'loss_temporal/pmnn_MLP_2D_d4_w20/evaluation_results/results_summary.json')
 
+    print('\n5 dimensions')
 
+    collect_and_summarize('numerical_experiments/Part1_power_method',
+                            'loss/pmnn_MLP_5D_d4_w40/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method',
+                            'loss_combined/pmnn_MLP_5D_d4_w40/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method',
+                            'loss_combined1/pmnn_MLP_5D_d4_w40/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method',
+                            'loss_temporal/pmnn_MLP_5D_d4_w40/evaluation_results/results_summary.json')
 
 
 
