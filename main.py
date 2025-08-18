@@ -4,13 +4,42 @@ from config import CONFIG
 torch.set_default_dtype(torch.float64)
 from train_model import run_model, run_model_all_criteria
 import importlib.util
-import os
-import json
-import pandas as pd
+
 
 import os
 import json
 import pandas as pd
+
+def collect_training_stats(root_dir):
+    """
+    Recorre root_dir buscando 'results_summary.json' y devuelve un DataFrame con:
+    - path (relativo a root_dir)
+    - best_iteration
+    - loss_value
+    - time_seconds
+    - time_minutes (time_seconds / 60)
+    """
+    rows = []
+    for subdir, _, files in os.walk(root_dir):
+        if "results_summary.json" in files:
+            path = os.path.join(subdir, "summary.json")
+            with open(path, "r") as f:
+                summary = json.load(f)
+
+            best_it = summary.get("best_iteration")
+            loss_val = summary.get("loss_value")
+            t_sec = summary.get("time_seconds")
+
+            rows.append({
+                "path": os.path.relpath(subdir, root_dir),
+                "best_iteration": best_it,
+                "loss_value": loss_val,
+                "time_seconds": t_sec,
+                "time_minutes": (t_sec / 60.0) if isinstance(t_sec, (int, float)) else None
+            })
+
+    return pd.DataFrame(rows)
+
 
 def collect_results(root_dir):
     rows = []
@@ -98,8 +127,7 @@ def collect_and_summarize(base_path: str, suffix: str):
 
 if __name__ == "__main__":
 
-    results = collect_results('numerical_experiments/Part1_power_method/loss')
-    print(results)
+    results = collect_training_stats('numerical_experiments/Part1_power_method')
 
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed100')
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
