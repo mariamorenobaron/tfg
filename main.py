@@ -69,10 +69,10 @@ def collect_and_summarize(base_path: str, suffix: str):
 
 if __name__ == "__main__":
 
-    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss/pmnn_MLP_10D_d4_w80/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_combined/pmnn_MLP_10D_d4_w80/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_combined1/pmnn_MLP_10D_d4_w80/evaluation_results/results_summary.json')
-    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_temporal/pmnn_MLP_10D_d4_w80/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_combined/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_combined1/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
+    collect_and_summarize('numerical_experiments/Part1_power_method', 'loss_temporal/pmnn_MLP_1D_d4_w20/evaluation_results/results_summary.json')
 
 
 
