@@ -35,6 +35,8 @@ def collect_training_stats(root_dir):
                 "path": os.path.relpath(subdir, root_dir),
                 "data_points": data_points,
                 "best_iteration": best_it,
+                "mem_GPU": summary.get("peak_gpu_MB"),
+                "mem_RAM": summary.get("peak_ram_MB"),
                 "loss_value": loss_val,
                 "time_seconds": t_sec,
                 "time_minutes": (t_sec / 60.0) if isinstance(t_sec, (int, float)) else None
@@ -129,10 +131,10 @@ def collect_and_summarize(base_path: str, suffix: str):
 
 if __name__ == "__main__":
 
-    results = collect_training_stats('numerical_experiments/Part2_inverse_power_method')
+    results = collect_training_stats('numerical_experiments/Part4_architectures')
     print(results)
 
-    results = collect_results('numerical_experiments/Part2_inverse_power_method')
+    results = collect_results('numerical_experiments/Part4_architectures')
     print(results)
 
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed100')
