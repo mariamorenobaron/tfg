@@ -27,7 +27,7 @@ def collect_training_stats(root_dir):
                 summary = json.load(f)
 
             best_it = summary.get("best_iteration")
-            loss_val = summary.get("loss_value")
+            loss_val = summary.get("min_loss")
             t_sec = summary.get("time_seconds")
             data_points = summary.get("data_points")
 
