@@ -21,7 +21,7 @@ def collect_training_stats(root_dir):
     """
     rows = []
     for subdir, _, files in os.walk(root_dir):
-        if "results_summary.json" in files:
+        if "summary.json" in files:
             path = os.path.join(subdir, "summary.json")
             with open(path, "r") as f:
                 summary = json.load(f)
@@ -127,7 +127,7 @@ def collect_and_summarize(base_path: str, suffix: str):
 
 if __name__ == "__main__":
 
-    results = collect_training_stats('numerical_experiments/Part1_power_method')
+    results = collect_training_stats('numerical_experiments/Part1_power_method/loss')
 
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed100')
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
