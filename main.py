@@ -128,6 +128,7 @@ def collect_and_summarize(base_path: str, suffix: str):
 if __name__ == "__main__":
 
     results = collect_training_stats('numerical_experiments/Part1_power_method/loss')
+    print(results)
 
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed100')
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed200')
