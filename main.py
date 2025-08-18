@@ -131,10 +131,10 @@ def collect_and_summarize(base_path: str, suffix: str):
 
 if __name__ == "__main__":
 
-    results = collect_training_stats('numerical_experiments/Part5_epochs_analysis')
+    results = collect_training_stats('numerical_experiments/Part3_shifted_ipmnn')
     print(results)
 
-    results = collect_results('numerical_experiments/Part5_epochs_analysis')
+    results = collect_results('numerical_experiments/Part3_shifted_ipmnn')
     print(results)
 
     #run_model_all_criteria(CONFIG, save_dir='numerical_experiments/Part1_power_method/seed100')
