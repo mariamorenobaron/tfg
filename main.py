@@ -16,7 +16,6 @@ def collect_results(root_dir):
             with open(path, "r") as f:
                 summary = json.load(f)
 
-            d = summary.get("dimension")
             lambda_true = summary.get("lambda_true")
             lambda_pred = summary.get("lambda_pred")
             rel_error = summary.get("relative_error")
@@ -24,12 +23,12 @@ def collect_results(root_dir):
             linf_error = summary.get("linf_error")
 
             rows.append({
-                "d": d,
+                "path": subdir,
                 "λ_true": lambda_true,
                 "λ_pred": lambda_pred,
                 "Rel. Error": rel_error,
-                "L2 Error": l2_error,
-                "L∞ Error": linf_error
+                "L2 Error": L2_error,
+                "L∞ Error": Linf_error
             })
 
     df = pd.DataFrame(rows)
