@@ -29,9 +29,11 @@ def collect_training_stats(root_dir):
             best_it = summary.get("best_iteration")
             loss_val = summary.get("loss_value")
             t_sec = summary.get("time_seconds")
+            data_points = summary.get("data_points")
 
             rows.append({
                 "path": os.path.relpath(subdir, root_dir),
+                "data_points": data_points,
                 "best_iteration": best_it,
                 "loss_value": loss_val,
                 "time_seconds": t_sec,
